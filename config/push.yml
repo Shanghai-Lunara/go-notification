@@ -1,0 +1,20 @@
+# This is the configuration file for the push server.
+
+Server:
+  service_name: "ServerPush.v2"
+  dispatch_worker_num: 1
+  switch_worker_num: 1
+  job_worker_num: 1
+  log_file: "push-server.log"
+
+RequestUrl: "http://192.168.16.222/hero/1.0/cn/api/push.php"
+
+Etcd:
+  dial_timeout: 5
+  request_timeout: 10
+  end_points: ["localhost:2379", "localhost:2879"]
+  username: ""
+  password: ""
+
+Redis:
+  - ["192.168.16.222", "4100", ""]
