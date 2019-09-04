@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package register.push.v1;
+
+message RegisterRequest {
+    string externalAddr = 1;
+    string message = 2;
+}
+
+message RegisterResponse {
+    int32 id = 1;
+    string message = 2;
+}
+
+message PingRequest {
+    int32 id = 1;
+}
+
+message PongResponse {
+    string message = 1;
+}
+
+service Gateway {
+    rpc RegisterGateway(RegisterRequest) returns (RegisterResponse) {}
+    rpc Ping(PingRequest) returns (PongResponse) {}
+}
