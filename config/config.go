@@ -1,22 +1,25 @@
 package config
 
 import (
+	"errors"
+	"flag"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
-	"os"
 )
 
-type ServerConfig struct {
+type DispatchConfig struct {
 	ServiceName       string `yaml:"service_name"`
-	DispatchWorkerNum int    `yaml:"dispatch_worker_num"`
-	SwitchWorkerNum   int    `yaml:"switch_worker_num"`
-	JobWorkerNum      int    `yaml:"job_worker_num"`
 	LogFile           string `yaml:"log_file"`
+	IP                string `yaml:"ip"`
+	InternalIP        string `yaml:"internal_ip"`
+	Port              int    `yaml:"port"`
+	HeartBeatInternal int    `yaml:"heart_beat_internal"`
 }
 
-type RequestConfig struct {
-	RequestUrl string `yaml:"RequestUrl"`
+type LogicConfig struct {
+	ServiceName string `yaml:"service_name"`
+	LogFile     string `yaml:"log_file"`
 }
 
 type EtcdConfig struct {
@@ -32,46 +35,66 @@ type RedisConfig struct {
 }
 
 type Config struct {
-	Server        ServerConfig `yaml:"Server,flow"`
-	RequestConfig `yaml:",inline"`
-	Etcd          EtcdConfig `yaml:"Etcd,flow"`
-	RedisConfig   `yaml:",inline"`
+	Dispatch       DispatchConfig `yaml:"Disaptch,flow"`
+	Logic          LogicConfig    `yaml:"Logic,flow"`
+	HttpRequestApi string         `yaml:"HttpRequestAPI"`
+	Etcd           EtcdConfig     `yaml:"Etcd,flow"`
+	RedisConfig    `yaml:",inline"`
+	ConfigPath     string
 }
 
-var conf *Config
+var (
+	conf       *Config
+	configPath string
+)
 
-func LoadConfig(file string) {
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		log.Println("ioutil.ReadFile err:", err)
-		os.Exit(0)
+func init() {
+	flag.StringVar(&configPath, "configPath", "push.yml", "configuration file path")
+}
+
+func Init() (err error) {
+	var (
+		data []byte
+	)
+	if data, err = ioutil.ReadFile(configPath); err != nil {
+		return errors.New(fmt.Sprintf("ioutil.ReadFile err:%v", err))
 	}
-
-	err = yaml.Unmarshal(data, &conf)
-	if err != nil {
-		log.Println("yaml.Unmarshal err:", err)
-		os.Exit(0)
+	if err := yaml.Unmarshal(data, &conf); err != nil {
+		return errors.New(fmt.Sprintf("yaml.Unmarshal err:%v", err))
 	}
-
+	conf.ConfigPath = configPath
 	//log.Println("a:", conf)
+	return nil
 }
 
-func GetServerConfig() ServerConfig {
-	return conf.Server
+func GetConfigPath() string {
+	return conf.ConfigPath
 }
 
-func GetLogFile() string {
-	return conf.Server.LogFile
-}
-
-func GetRequestConfig() string {
-	return conf.RequestUrl
+func GetConfig() *Config {
+	return conf
 }
 
 func GetEtcdConfig() EtcdConfig {
 	return conf.Etcd
 }
 
-func GetRedisConfig() [][]string {
-	return conf.Redis
+func GetDispatchLogFile() string {
+	return conf.Dispatch.LogFile
+}
+
+func GetLogicLogFile() string {
+	return conf.Logic.LogFile
+}
+
+func (c *Config) GetRedisConfig() [][]string {
+	return c.Redis
+}
+
+func GetDispatchListenAddr() string {
+	return fmt.Sprintf("%s:%d", conf.Dispatch.IP, conf.Dispatch.Port)
+}
+
+func GetDispatcHeartBeatInternal() int {
+	return conf.Dispatch.HeartBeatInternal
 }

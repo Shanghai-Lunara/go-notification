@@ -21,6 +21,6 @@ message PongResponse {
 }
 
 service Gateway {
-    rpc RegisterGateway(RegisterRequest) returns (RegisterResponse) {}
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Ping(PingRequest) returns (PongResponse) {}
 }

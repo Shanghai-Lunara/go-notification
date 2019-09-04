@@ -1,18 +1,23 @@
-# This is the configuration file for the push server.
+# This is the configuration file for the go-notification service.
 
-Server:
-  service_name: "ServerPush.v2"
-  dispatch_worker_num: 1
-  switch_worker_num: 1
-  job_worker_num: 1
-  log_file: "push-server.log"
+Dispatch:
+  service_name: "push-dispatch"
+  log_file: "push-dispatch.log"
+  ip: "0.0.0.0"
+  internal_ip: "0.0.0.0"
+  port: 30001
+  heart_beat_internal: 30
 
-RequestUrl: "http://192.168.16.222/hero/1.0/cn/api/push.php"
+Logic:
+  service_name: "push-logic.n1"
+  log_file: "push-logic.log"
+
+HttpRequestAPI: "http://192.168.16.222/hero/1.0/cn/api/guildwar.php"
 
 Etcd:
   dial_timeout: 5
   request_timeout: 10
-  end_points: ["localhost:2379", "localhost:2879"]
+  end_points: ["localhost:2379"]
   username: ""
   password: ""
 
