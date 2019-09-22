@@ -20,6 +20,7 @@ type DispatchConfig struct {
 type LogicConfig struct {
 	ServiceName string `yaml:"service_name"`
 	LogFile     string `yaml:"log_file"`
+	WorkerNum   int    `yaml:"worker_num"`
 }
 
 type EtcdConfig struct {

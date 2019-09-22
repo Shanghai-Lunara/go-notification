@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	ConnAlive = iota
+	ConnClosed
+)
+
 type Conn struct {
 	id           int32
 	registerTime time.Time
@@ -22,7 +27,7 @@ func (h *Hub) NewConn(id int32, addr net.Addr) *Conn {
 		id:           id,
 		registerTime: time.Now(),
 		heartTime:    time.Now(),
-		status:       0,
+		status:       ConnAlive,
 		addr:         addr,
 		ctx:          ctx,
 		cancel:       cancel,
@@ -37,6 +42,7 @@ func (h *Hub) keepAlive(c *Conn) {
 		select {
 		case <-tick.C:
 			if time.Now().Sub(c.heartTime) > 0 {
+				c.status = ConnClosed
 				h.close(c)
 				return
 			}

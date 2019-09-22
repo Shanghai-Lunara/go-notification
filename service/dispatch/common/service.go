@@ -68,10 +68,12 @@ func (s *Service) initRpcService() {
 }
 
 type Service struct {
-	c      *config.Config
-	dao    *dao.Dao
-	ctx    context.Context
-	cancel context.CancelFunc
+	c       *config.Config
+	dao     *dao.Dao
+	hub     *Hub
+	nodeHub *NodeHub
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
 func New(conf *config.Config) *Service {
@@ -79,9 +81,11 @@ func New(conf *config.Config) *Service {
 	s := &Service{
 		c:      conf,
 		dao:    dao.New(conf),
+		hub:    NewHub(conf, ctx),
 		ctx:    ctx,
 		cancel: cancel,
 	}
+	s.nodeHub = s.NewNodeHub()
 	go s.initRpcService()
 	return s
 }

@@ -11,6 +11,7 @@ Dispatch:
 Logic:
   service_name: "push-logic.n1"
   log_file: "push-logic.log"
+  wokrer_num: 2
 
 HttpRequestAPI: "http://192.168.16.222/hero/1.0/cn/api/guildwar.php"
 

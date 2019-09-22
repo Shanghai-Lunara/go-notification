@@ -40,9 +40,16 @@ func (h *Hub) close(c *Conn) {
 }
 
 func (s *Service) handleInit(addr net.Addr, ext string) int32 {
-	return 1
+	id := s.hub.getClientId()
+	s.hub.mu.Lock()
+	defer s.hub.mu.Unlock()
+	c := s.hub.NewConn(id, addr)
+	s.hub.connections[id] = c
+	return c.id
 }
 
 func (s *Service) handlePing(id int32) {
-
+	if t, ok := s.hub.connections[id]; ok {
+		t.ping()
+	}
 }
