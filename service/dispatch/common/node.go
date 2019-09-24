@@ -53,7 +53,7 @@ func (s *Service) loop() {
 		case <-tick.C:
 			s.nodeHub.mu.Lock()
 			for _, v := range s.nodeHub.nodes {
-				if v.status == NodeIdle {
+				if v.status == NodeIdle || v.allocatedId == 0 {
 					continue
 				}
 				if t, ok := s.hub.connections[v.allocatedId]; ok {
@@ -61,6 +61,9 @@ func (s *Service) loop() {
 						v.allocatedId = 0
 						v.status = NodeIdle
 					}
+				} else {
+					v.allocatedId = 0
+					v.status = NodeIdle
 				}
 			}
 			s.nodeHub.mu.Unlock()
@@ -68,7 +71,7 @@ func (s *Service) loop() {
 	}
 }
 
-func (s *Service) handleGetAllocatedNode(id int32) {
+func (s *Service) handleGetAllocatedNode(id int32) string {
 	s.nodeHub.mu.Lock()
 	defer s.nodeHub.mu.Unlock()
 	var b []string
@@ -85,11 +88,13 @@ func (s *Service) handleGetAllocatedNode(id int32) {
 			}
 		}
 	}
-	if len(b) > 0 {
-		s.nodeHub.nodes[b[0]].allocatedId = id
-		s.nodeHub.nodes[b[0]].status = NodeInUse
-		s.nodeHub.nodes[b[0]].heartTime = time.Now()
+	if len(b) == 0 {
+		return ""
 	}
+	s.nodeHub.nodes[b[0]].allocatedId = id
+	s.nodeHub.nodes[b[0]].status = NodeInUse
+	s.nodeHub.nodes[b[0]].heartTime = time.Now()
+	return b[0]
 }
 
 func (s *Service) handlePingNode(id int32, addr string) {

@@ -48,7 +48,6 @@ func (s *Service) initRpcClient(conf *config.Config) (err error) {
 	if err != nil {
 		return errors.New(fmt.Sprintf("grpc.Dial err: %v", err))
 	}
-	//defer conn.Close()
 	c := pb.NewGatewayClient(s.rpcClient.conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	res, err := c.Register(ctx, &pb.RegisterRequest{Message: time.Now().String(), ExternalAddr: ""})

@@ -50,7 +50,16 @@ func (s *server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 
 func (s *server) Ping(ctx context.Context, req *pb.PingRequest) (*pb.PongResponse, error) {
 	s.service.handlePing(req.Id)
-	return &pb.PongResponse{Message: "pong"}, nil
+	return &pb.PongResponse{Message: "Ping pong"}, nil
+}
+
+func (s *server) GetAllocatedNode(ctx context.Context, req *pb.CommonResponse) (*pb.GetAllocatedNodeResponse, error) {
+	return &pb.GetAllocatedNodeResponse{Addr: s.service.handleGetAllocatedNode(req.Id)}, nil
+}
+
+func (s *server) CompleteNode(ctx context.Context, req *pb.CommonResponse) (*pb.PongResponse, error) {
+	s.service.handleCompleteNode(req.Id, req.Addr)
+	return &pb.PongResponse{Message: "CompleteNode pong"}, nil
 }
 
 func (s *Service) initRpcService() {
