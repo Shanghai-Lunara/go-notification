@@ -118,6 +118,7 @@ type Service struct {
 	c         *config.Config
 	dao       *dao.Dao
 	rpcClient *RpcClient
+	workers   *Workers
 	ctx       context.Context
 	cancel    context.CancelFunc
 }
@@ -125,10 +126,11 @@ type Service struct {
 func New(conf *config.Config) *Service {
 	ctx, cancel := context.WithCancel(context.Background())
 	s := &Service{
-		c:      conf,
-		dao:    dao.New(conf),
-		ctx:    ctx,
-		cancel: cancel,
+		c:       conf,
+		dao:     dao.New(conf),
+		workers: NewWorkers(conf, ctx),
+		ctx:     ctx,
+		cancel:  cancel,
 	}
 	return s
 }
