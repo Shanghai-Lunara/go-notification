@@ -27,7 +27,7 @@ func TestInitList(t *testing.T) {
 	}
 }
 
-func TestListNodes_appendOrModify(t *testing.T) {
+func TestListNodes_listRightPush(t *testing.T) {
 	type fields struct {
 		Players map[int]*ListNode
 	}
@@ -46,45 +46,59 @@ func TestListNodes_appendOrModify(t *testing.T) {
 		args   args
 	}{
 		{
-			name:   "TestListNodes_appendOrModify",
+			name:   "TestListNodes_listRightPush",
 			fields: l,
 			args: args{
 				p: a1,
 			},
 		},
 		{
-			name:   "TestListNodes_appendOrModify",
+			name:   "TestListNodes_listRightPush",
 			fields: l,
 			args: args{
 				p: &Player{Pid: 2, Value: 2},
 			},
 		},
 		{
-			name:   "TestListNodes_appendOrModify",
+			name:   "TestListNodes_listRightPush",
 			fields: l,
 			args: args{
 				p: &Player{Pid: 3, Value: 3},
 			},
 		},
 		{
-			name:   "TestListNodes_appendOrModify",
+			name:   "TestListNodes_listRightPush",
 			fields: l,
 			args: args{
 				p: &Player{Pid: 4, Value: 4},
 			},
 		},
 		{
-			name:   "TestListNodes_appendOrModify",
+			name:   "TestListNodes_listRightPush",
 			fields: l,
 			args: args{
 				p: &Player{Pid: 12, Value: 4},
 			},
 		},
 		{
-			name:   "TestListNodes_appendOrModify",
+			name:   "TestListNodes_listRightPush",
+			fields: l,
+			args: args{
+				p: getNew(a1),
+			},
+		},
+		{
+			name:   "TestListNodes_listRightPush",
 			fields: l,
 			args: args{
 				p: &Player{Pid: 5, Value: 5},
+			},
+		},
+		{
+			name:   "TestListNodes_listRightPush",
+			fields: l,
+			args: args{
+				p: getNew(a1),
 			},
 		},
 	}
@@ -108,7 +122,7 @@ func TestListNodes_appendOrModify(t *testing.T) {
 }
 
 func getNew(a *Player) *Player {
-	a.Value = 10
+	a.Value *= 10
 	return a
 }
 

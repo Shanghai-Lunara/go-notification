@@ -20,7 +20,7 @@ message PongResponse {
     string message = 1;
 }
 
-message CommonResponse {
+message CommonRequest {
     int32 id = 1;
     string addr = 2;
 }
@@ -32,6 +32,6 @@ message GetAllocatedNodeResponse {
 service Gateway {
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Ping(PingRequest) returns (PongResponse) {}
-    rpc GetAllocatedNode(CommonResponse) returns (GetAllocatedNodeResponse) {}
-    rpc CompleteNode(CommonResponse) returns (PongResponse) {}
+    rpc GetAllocatedNode(CommonRequest) returns (GetAllocatedNodeResponse) {}
+    rpc CompleteNode(CommonRequest) returns (PongResponse) {}
 }

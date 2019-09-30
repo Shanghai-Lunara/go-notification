@@ -3,7 +3,6 @@ package common
 type Player struct {
 	Pid   int
 	Value int
-	C     int
 }
 
 type ListNode struct {
@@ -39,6 +38,9 @@ func (l *ListNodes) AppendOrModify(p *Player) {
 func (l *ListNodes) listRightPush(t *ListNode, p *ListNode) {
 	if t.Player.Value <= p.Player.Value {
 		if t.RLink == nil {
+			if t.Player.Pid == p.Player.Pid {
+				return
+			}
 			if p.LLink != nil {
 				p.LLink.RLink = p.RLink
 			}

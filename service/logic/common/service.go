@@ -114,6 +114,14 @@ func (s *Service) rpcClose() {
 	s.rpcClient.closeChan <- 1
 }
 
+func (s *Service) getAllocatedNode() (addr string, err error) {
+	if res, err := s.rpcClient.gatewayClient.GetAllocatedNode(s.ctx, &pb.CommonRequest{Id: s.rpcClient.id, Addr: ""}); err != nil {
+		return "", err
+	} else {
+		return res.Addr, err
+	}
+}
+
 type Service struct {
 	c         *config.Config
 	dao       *dao.Dao
