@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"go-notification/dao"
+	"log"
 	"time"
 )
 
@@ -12,11 +13,29 @@ type Worker struct {
 	count     int
 	listNodes *ListNodes
 	ctx       context.Context
-	cancel    context.CancelFunc
 }
 
 func (w *Worker) appendLoop() {
+	tick := time.NewTicker(time.Millisecond * 10)
+	defer tick.Stop()
+	for {
+		select {
+		case <-w.ctx.Done():
+			return
+		case <-tick.C:
+			if res, err := w.dao.LPopOne(w.addr); err != nil {
+				log.Print("appendLoop LPopOne err:", err)
+				time.Sleep(time.Second * 1)
+				continue
+			} else {
+				if res == "" {
+					time.Sleep(time.Millisecond * 500)
+					continue
+				}
 
+			}
+		}
+	}
 }
 
 func (w *Worker) logicLoop() {
@@ -34,6 +53,9 @@ func (s *Service) initWorker(w *Worker) {
 			if addr, err := s.getAllocatedNode(); err != nil {
 				continue
 			} else {
+				if addr == "" {
+					continue
+				}
 				tick.Stop()
 				w.addr = addr
 				go w.appendLoop()

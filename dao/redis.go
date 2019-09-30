@@ -57,3 +57,7 @@ func (r *RedisPool) GetRedisPool(consumer int) *redis.Pool {
 	addr := fmt.Sprintf("%s:%s", t[0], t[1])
 	return r.Connections[addr]
 }
+
+func (r *RedisPool) GetRedisClientByAddr(addr string) *redis.Pool {
+	return r.Connections[addr]
+}
