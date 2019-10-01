@@ -4,6 +4,7 @@ import (
 	"context"
 	"go-notification/dao"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -23,17 +24,30 @@ func (w *Worker) appendLoop() {
 		case <-w.ctx.Done():
 			return
 		case <-tick.C:
-			if res, err := w.dao.LPopOne(w.addr); err != nil {
+			var (
+				pStr string
+				err  error
+				pid  int
+				info []string
+			)
+			if pStr, err = w.dao.LPopOne(w.addr); err != nil {
 				log.Print("appendLoop LPopOne err:", err)
 				time.Sleep(time.Second * 1)
 				continue
-			} else {
-				if res == "" {
-					time.Sleep(time.Millisecond * 500)
-					continue
-				}
-
 			}
+			if pStr == "" {
+				time.Sleep(time.Millisecond * 500)
+				continue
+			}
+			if pid, err = strconv.Atoi(pStr); err != nil {
+				log.Print("appendLoop strconv.Atoi err:", err)
+				continue
+			}
+			if info, err = w.dao.GetSinglePlayerList(pid); err != nil {
+				log.Print("appendLoop GetSinglePlayerList err:", err)
+				continue
+			}
+			_ = info
 		}
 	}
 }
@@ -44,10 +58,10 @@ func (w *Worker) logicLoop() {
 
 func (s *Service) initWorker(w *Worker) {
 	tick := time.NewTicker(time.Second * 1)
+	defer tick.Stop()
 	for {
 		select {
 		case <-s.ctx.Done():
-			tick.Stop()
 			return
 		case <-tick.C:
 			if addr, err := s.getAllocatedNode(); err != nil {
@@ -56,7 +70,6 @@ func (s *Service) initWorker(w *Worker) {
 				if addr == "" {
 					continue
 				}
-				tick.Stop()
 				w.addr = addr
 				go w.appendLoop()
 				go w.logicLoop()

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"log"
+	"strconv"
+	"strings"
 )
 
 func (d *Dao) LPopOne(addr string) (p string, err error) {
@@ -29,7 +31,7 @@ func (d *Dao) GetSinglePlayerList(pid int) (p []string, err error) {
 		}
 	}()
 	key := fmt.Sprintf("consumer:one:%d", pid)
-	if res, err := redis.Strings(redisConn.Do("lRange", key, 0, 200)); err != nil {
+	if res, err := redis.Strings(redisConn.Do("lRange", key, 0, -1)); err != nil {
 		return nil, err
 	} else {
 		return res, nil
@@ -45,20 +47,47 @@ func (d *Dao) UpdateSinglePlayerList(pid, length int, m []string) (err error) {
 	}()
 	key := fmt.Sprintf("consumer:one:%d", pid)
 	if _, err := redisConn.Do("multi"); err != nil {
-		return
-	}
-	if _, err := redisConn.Do("lTrim", key, length, -1); err != nil {
-		return
+		return err
 	}
 	for _, v := range m {
-		if _, err := redisConn.Do("rPush", key, v); err != nil {
-			return
+		if _, err := redisConn.Do("lRem", key, v, 1); err != nil {
+			return err
 		}
 	}
 	if _, err := redisConn.Do("exec"); err != nil {
-		return
+		return err
 	}
 	return nil
+}
+
+func (d *Dao) GetPlayerSettings(pid int) (cid string, close int, err error) {
+	redisConn := d.Redis.GetRedisPool(pid).Get()
+	defer func() {
+		if err := redisConn.Close(); err != nil {
+			log.Println("GetPlayerSettings redisConn.Close err:", err)
+		}
+	}()
+	var (
+		res map[string]string
+	)
+	settingKey := fmt.Sprintf("push_setting:%d", pid)
+	if res, err = redis.StringMap(redisConn.Do("hGetAll", settingKey)); err != nil {
+		return "", 0, err
+	}
+	if t, ok := res["cid"]; ok {
+		cid = t
+	}
+	if settings, ok := res["settings"]; ok {
+		tmp := strings.Split(settings, ",")
+		if len(tmp) >= 7 {
+			tmp2, err := strconv.Atoi(tmp[6])
+			if err != nil {
+				return cid, 0, err
+			}
+			close = tmp2
+		}
+	}
+	return cid, close, nil
 }
 
 func (d *Dao) GetAllPlayer() {
