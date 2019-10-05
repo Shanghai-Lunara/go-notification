@@ -12,6 +12,7 @@ type Worker struct {
 	dao       *dao.Dao
 	addr      string
 	count     int
+	status    int
 	listNodes *ListNodes
 	ctx       context.Context
 }

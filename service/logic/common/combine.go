@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+const (
+	StatusAlive = iota
+	StatusClosed
+)
+
 func (s *Service) Combine(info []string, pid int) (res []string, min int) {
 	//fmt.Sprintf("%d:%d:%d:%d:%d", playerId, type, end_time, subid, status)
 	var (
@@ -36,7 +41,7 @@ func (s *Service) Combine(info []string, pid int) (res []string, min int) {
 				res = append(res, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, tmp2, infoSub, 0))
 			}
 		}
-		if status == 1 {
+		if status == StatusClosed {
 			res = append(res, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, infoTime, infoSub, 1))
 			delete(n[infoType], infoSub)
 		} else {
