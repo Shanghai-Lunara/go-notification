@@ -1,6 +1,9 @@
 package common
 
+import "sync"
+
 type Player struct {
+	mu    sync.RWMutex
 	Pid   int
 	Value int
 }

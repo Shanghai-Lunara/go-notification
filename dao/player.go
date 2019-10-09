@@ -38,7 +38,7 @@ func (d *Dao) GetSinglePlayerList(pid int) (p []string, err error) {
 	}
 }
 
-func (d *Dao) UpdateSinglePlayerList(pid, length int, m []string) (err error) {
+func (d *Dao) UpdateSinglePlayerList(pid int, m []string) (err error) {
 	redisConn := d.Redis.GetRedisPool(pid).Get()
 	defer func() {
 		if err := redisConn.Close(); err != nil {

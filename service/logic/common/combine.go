@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -11,13 +12,14 @@ const (
 	StatusClosed
 )
 
-func (s *Service) Combine(info []string, pid int) (res []string, min int) {
+func (w *Worker) Combine(info []string, pid int) (del []string, meet map[int]int, min int) {
 	//fmt.Sprintf("%d:%d:%d:%d:%d", playerId, type, end_time, subid, status)
 	var (
 		t = make(map[int]int, 0)
 		n = make(map[int]map[int]int, 0)
 	)
-	res = make([]string, 0)
+	del = make([]string, 0)
+	meet = make(map[int]int, 0)
 	for _, v := range info {
 		a := strings.Split(v, ":")
 		infoType, err := strconv.Atoi(a[1])
@@ -38,11 +40,11 @@ func (s *Service) Combine(info []string, pid int) (res []string, min int) {
 		}
 		if tmp1, ok := n[infoType]; ok {
 			if tmp2, ok := tmp1[infoSub]; ok {
-				res = append(res, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, tmp2, infoSub, 0))
+				del = append(del, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, tmp2, infoSub, StatusAlive))
 			}
 		}
 		if status == StatusClosed {
-			res = append(res, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, infoTime, infoSub, 1))
+			del = append(del, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, infoTime, infoSub, StatusClosed))
 			delete(n[infoType], infoSub)
 		} else {
 			if _, ok := n[infoType]; !ok {
@@ -51,6 +53,7 @@ func (s *Service) Combine(info []string, pid int) (res []string, min int) {
 			n[infoType][infoSub] = infoTime
 		}
 	}
+
 	for infoType, v := range n {
 		for _, endTime := range v {
 			if m, ok := t[infoType]; ok {
@@ -62,13 +65,17 @@ func (s *Service) Combine(info []string, pid int) (res []string, min int) {
 			}
 		}
 	}
-	for _, v := range t {
+	now := int(time.Now().Unix())
+	for k, v := range t {
 		if min == 0 {
 			min = v
 		}
 		if min > v {
 			min = v
 		}
+		if v <= now {
+			meet[k] = v
+		}
 	}
-	return res, min
+	return del, meet, min
 }

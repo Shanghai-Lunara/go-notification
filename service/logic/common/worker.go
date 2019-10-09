@@ -5,10 +5,12 @@ import (
 	"go-notification/dao"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 )
 
 type Worker struct {
+	mu        sync.RWMutex
 	dao       *dao.Dao
 	addr      string
 	count     int
@@ -44,17 +46,32 @@ func (w *Worker) appendLoop() {
 				log.Print("appendLoop strconv.Atoi err:", err)
 				continue
 			}
-			if info, err = w.dao.GetSinglePlayerList(pid); err != nil {
-				log.Print("appendLoop GetSinglePlayerList err:", err)
-				continue
+			if err = w.RefreshOne(pid); err != nil {
+				log.Print("appendLoop RefreshOne err:", err)
 			}
-			_ = info
 		}
 	}
 }
 
 func (w *Worker) logicLoop() {
-
+	tick := time.NewTicker(time.Millisecond * 1)
+	defer tick.Stop()
+	for {
+		select {
+		case <-w.ctx.Done():
+			return
+		case <-tick.C:
+			if t, ok := w.listNodes.Players[0]; ok {
+				if t.RLink != nil {
+					t.RLink.Player.mu.Lock()
+					if t.RLink.Player.Value > int(time.Now().Unix()) {
+						t.RLink.Player.mu.Unlock()
+						continue
+					}
+				}
+			}
+		}
+	}
 }
 
 func (s *Service) initWorker(w *Worker) {
