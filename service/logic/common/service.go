@@ -89,6 +89,7 @@ func (s *Service) maintainRpcClient() {
 
 func (s *Service) rpcPing() {
 	tick := time.NewTicker(time.Second * 5)
+	defer tick.Stop()
 	for {
 		select {
 		case <-s.rpcClient.ctx.Done():
