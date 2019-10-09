@@ -4,6 +4,7 @@ import (
 	"context"
 	"go-notification/dao"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -81,6 +82,90 @@ func TestWorker_Combine(t *testing.T) {
 			}
 			if gotMin != tt.wantMin {
 				t.Errorf("Worker.Combine() gotMin = %v, want %v", gotMin, tt.wantMin)
+			}
+		})
+	}
+}
+
+func TestWorker_TransferMinTime(t *testing.T) {
+	type fields struct {
+		mu        sync.RWMutex
+		dao       *dao.Dao
+		addr      string
+		count     int
+		status    int
+		listNodes *ListNodes
+		ctx       context.Context
+	}
+	type args struct {
+		min   int
+		delay int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   int
+	}{
+		{
+			name:   "case1",
+			fields: fields{},
+			args: args{
+				min:   1570608129,
+				delay: 0,
+			},
+			want: 1570608129,
+		},
+		{
+			name:   "case2",
+			fields: fields{},
+			args: args{
+				min:   1570575600,
+				delay: 0,
+			},
+			want: 1570575600,
+		},
+		{
+			name:   "case3",
+			fields: fields{},
+			args: args{
+				min:   1570575600,
+				delay: 1,
+			},
+			want: 1570579200,
+		},
+		{
+			name:   "case4",
+			fields: fields{},
+			args: args{
+				min:   1570633200,
+				delay: 0,
+			},
+			want: 1570633200,
+		},
+		{
+			name:   "case5",
+			fields: fields{},
+			args: args{
+				min:   1570633200,
+				delay: 1,
+			},
+			want: 1570665600,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &Worker{
+				mu:        tt.fields.mu,
+				dao:       tt.fields.dao,
+				addr:      tt.fields.addr,
+				count:     tt.fields.count,
+				status:    tt.fields.status,
+				listNodes: tt.fields.listNodes,
+				ctx:       tt.fields.ctx,
+			}
+			if got := w.TransferMinTime(tt.args.min, tt.args.delay); got != tt.want {
+				t.Errorf("Worker.TransferMinTime() = %v, want %v", got, tt.want)
 			}
 		})
 	}

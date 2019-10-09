@@ -4,7 +4,6 @@ import (
 	"context"
 	"go-notification/dao"
 	"log"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -30,8 +29,6 @@ func (w *Worker) appendLoop() {
 			var (
 				pStr string
 				err  error
-				pid  int
-				info []string
 			)
 			if pStr, err = w.dao.LPopOne(w.addr); err != nil {
 				log.Print("appendLoop LPopOne err:", err)
@@ -42,11 +39,7 @@ func (w *Worker) appendLoop() {
 				time.Sleep(time.Millisecond * 500)
 				continue
 			}
-			if pid, err = strconv.Atoi(pStr); err != nil {
-				log.Print("appendLoop strconv.Atoi err:", err)
-				continue
-			}
-			if err = w.RefreshOne(pid); err != nil {
+			if err = w.RefreshOne(pStr); err != nil {
 				log.Print("appendLoop RefreshOne err:", err)
 			}
 		}

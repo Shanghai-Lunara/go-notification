@@ -79,3 +79,28 @@ func (w *Worker) Combine(info []string, pid int) (del []string, meet map[int]int
 	}
 	return del, meet, min
 }
+
+const (
+	DelayDefault = iota
+	DelayAlive
+)
+
+func (w *Worker) TransferMinTime(min, delay int) int {
+	if delay != DelayAlive {
+		return min
+	}
+	t := int64(min)
+	tm := time.Unix(t, 0)
+	l := time.Now().Location()
+	t22 := time.Date(tm.Year(), tm.Month(), tm.Day(), 22, 0, 0, 0, l)
+	r1 := t22.Unix()
+	if t >= r1 {
+		return int(r1) + 10*3600
+	}
+	t8 := time.Date(tm.Year(), tm.Month(), tm.Day(), 8, 0, 0, 0, l)
+	r2 := t8.Unix()
+	if t <= r2 {
+		return int(r2)
+	}
+	return min
+}

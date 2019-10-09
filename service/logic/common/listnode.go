@@ -6,6 +6,7 @@ type Player struct {
 	mu    sync.RWMutex
 	Pid   int
 	Value int
+	Delay int
 }
 
 type ListNode struct {
