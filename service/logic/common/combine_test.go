@@ -10,6 +10,7 @@ import (
 
 func TestWorker_Combine(t *testing.T) {
 	type fields struct {
+		mu        sync.RWMutex
 		dao       *dao.Dao
 		addr      string
 		count     int
@@ -18,14 +19,15 @@ func TestWorker_Combine(t *testing.T) {
 		ctx       context.Context
 	}
 	type args struct {
-		info []string
-		pid  int
+		info  []string
+		pid   int
+		clear bool
 	}
 	tests := []struct {
 		name     string
 		fields   fields
 		args     args
-		wantDel  []string
+		wantDel  map[string]int
 		wantMeet map[int]int
 		wantMin  int
 	}{
@@ -42,15 +44,60 @@ func TestWorker_Combine(t *testing.T) {
 					"1001:3:100030:3:0",
 					"1001:4:100016:0:0",
 					"1001:5:100032:0:0",
+					"1001:1:100014:0:0",
+					"1001:6:100009:0:0",
+					"1001:1:100014:0:0",
+					"1001:1:100014:0:0",
+				},
+				pid:   1001,
+				clear: false,
+			},
+			wantDel: map[string]int{
+				"1001:3:100006:1:0": 1,
+				"1001:3:100006:1:1": 1,
+				"1001:1:100011:0:0": 1,
+				"1001:1:100014:0:0": 2,
+			},
+			wantMeet: map[int]int{
+				1: 100014,
+				2: 100003,
+				3: 100030,
+				4: 100016,
+				5: 100032,
+				6: 100009,
+			},
+			wantMin: 100003,
+		},
+		{
+			name:   "case1",
+			fields: fields{},
+			args: args{
+				info: []string{
+					"1001:1:100011:0:0",
+					"1001:2:100003:0:0",
+					"1001:3:100006:1:0",
+					"1001:3:100020:2:0",
+					"1001:3:100006:1:1",
+					"1001:3:100030:3:0",
+					"1001:4:100016:0:0",
+					"1001:5:100032:0:0",
 					"1001:6:100009:0:0",
 					"1001:1:100014:0:0",
 				},
-				pid: 1001,
+				pid:   1001,
+				clear: true,
 			},
-			wantDel: []string{
-				"1001:3:100006:1:0",
-				"1001:3:100006:1:1",
-				"1001:1:100011:0:0",
+			wantDel: map[string]int{
+				"1001:3:100006:1:0": 1,
+				"1001:3:100006:1:1": 1,
+				"1001:1:100011:0:0": 1,
+				"1001:2:100003:0:0": 1,
+				"1001:3:100020:2:0": 1,
+				"1001:3:100030:3:0": 1,
+				"1001:4:100016:0:0": 1,
+				"1001:5:100032:0:0": 1,
+				"1001:6:100009:0:0": 1,
+				"1001:1:100014:0:0": 1,
 			},
 			wantMeet: map[int]int{
 				1: 100014,
@@ -66,6 +113,7 @@ func TestWorker_Combine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := &Worker{
+				mu:        tt.fields.mu,
 				dao:       tt.fields.dao,
 				addr:      tt.fields.addr,
 				count:     tt.fields.count,
@@ -73,7 +121,7 @@ func TestWorker_Combine(t *testing.T) {
 				listNodes: tt.fields.listNodes,
 				ctx:       tt.fields.ctx,
 			}
-			gotDel, gotMeet, gotMin := w.Combine(tt.args.info, tt.args.pid)
+			gotDel, gotMeet, gotMin := w.Combine(tt.args.info, tt.args.pid, tt.args.clear)
 			if !reflect.DeepEqual(gotDel, tt.wantDel) {
 				t.Errorf("Worker.Combine() gotDel = %v, want %v", gotDel, tt.wantDel)
 			}

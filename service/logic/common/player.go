@@ -6,15 +6,16 @@ import (
 	"strings"
 )
 
-func (w *Worker) PullPlayerOne(pid int) (meet map[int]int, min int, err error) {
+func (w *Worker) PullPlayerOne(pid int, clear bool) (meet map[int]int, min int, err error) {
 	var (
-		info, del []string
+		info []string
+		del  map[string]int
 	)
 	meet = make(map[int]int, 0)
 	if info, err = w.dao.GetSinglePlayerList(pid); err != nil {
 		return meet, min, err
 	}
-	del, meet, min = w.Combine(info, pid)
+	del, meet, min = w.Combine(info, pid, clear)
 	if len(del) > 0 {
 		if err = w.dao.UpdateSinglePlayerList(pid, del); err != nil {
 			return meet, min, err
@@ -75,7 +76,7 @@ func (w *Worker) RefreshOne(str string) (err error) {
 	if len(tmp) > 1 {
 		return w.UpdatePlayerSettings(pid)
 	}
-	if _, min, err := w.PullPlayerOne(pid); err != nil {
+	if _, min, err := w.PullPlayerOne(pid, false); err != nil {
 		return err
 	} else {
 		w.UpdatePlayerValue(pid, min)
@@ -84,7 +85,7 @@ func (w *Worker) RefreshOne(str string) (err error) {
 }
 
 func (w *Worker) CheckOne(pid int) (err error) {
-	if meet, _, err := w.PullPlayerOne(pid); err != nil {
+	if meet, _, err := w.PullPlayerOne(pid, true); err != nil {
 		return err
 	} else {
 		if len(meet) > 0 {

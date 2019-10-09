@@ -38,7 +38,7 @@ func (d *Dao) GetSinglePlayerList(pid int) (p []string, err error) {
 	}
 }
 
-func (d *Dao) UpdateSinglePlayerList(pid int, m []string) (err error) {
+func (d *Dao) UpdateSinglePlayerList(pid int, m map[string]int) (err error) {
 	redisConn := d.Redis.GetRedisPool(pid).Get()
 	defer func() {
 		if err := redisConn.Close(); err != nil {
@@ -49,8 +49,8 @@ func (d *Dao) UpdateSinglePlayerList(pid int, m []string) (err error) {
 	if _, err := redisConn.Do("multi"); err != nil {
 		return err
 	}
-	for _, v := range m {
-		if _, err := redisConn.Do("lRem", key, v, 1); err != nil {
+	for k, v := range m {
+		if _, err := redisConn.Do("lRem", key, k, v); err != nil {
 			return err
 		}
 	}

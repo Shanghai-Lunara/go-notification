@@ -12,13 +12,13 @@ const (
 	StatusClosed
 )
 
-func (w *Worker) Combine(info []string, pid int) (del []string, meet map[int]int, min int) {
+func (w *Worker) Combine(info []string, pid int, clear bool) (del map[string]int, meet map[int]int, min int) {
 	//fmt.Sprintf("%d:%d:%d:%d:%d", playerId, type, end_time, subid, status)
 	var (
 		t = make(map[int]int, 0)
 		n = make(map[int]map[int]int, 0)
 	)
-	del = make([]string, 0)
+	del = make(map[string]int, 0)
 	meet = make(map[int]int, 0)
 	for _, v := range info {
 		a := strings.Split(v, ":")
@@ -40,11 +40,21 @@ func (w *Worker) Combine(info []string, pid int) (del []string, meet map[int]int
 		}
 		if tmp1, ok := n[infoType]; ok {
 			if tmp2, ok := tmp1[infoSub]; ok {
-				del = append(del, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, tmp2, infoSub, StatusAlive))
+				str := fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, tmp2, infoSub, StatusAlive)
+				if _, ok := del[str]; ok {
+					del[str]++
+				} else {
+					del[str] = 1
+				}
 			}
 		}
 		if status == StatusClosed {
-			del = append(del, fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, infoTime, infoSub, StatusClosed))
+			str := fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, infoTime, infoSub, StatusClosed)
+			if _, ok := del[str]; ok {
+				del[str]++
+			} else {
+				del[str] = 1
+			}
 			delete(n[infoType], infoSub)
 		} else {
 			if _, ok := n[infoType]; !ok {
@@ -53,7 +63,6 @@ func (w *Worker) Combine(info []string, pid int) (del []string, meet map[int]int
 			n[infoType][infoSub] = infoTime
 		}
 	}
-
 	for infoType, v := range n {
 		for _, endTime := range v {
 			if m, ok := t[infoType]; ok {
@@ -66,6 +75,20 @@ func (w *Worker) Combine(info []string, pid int) (del []string, meet map[int]int
 		}
 	}
 	now := int(time.Now().Unix())
+	if clear == true {
+		for infoType, v := range n {
+			for sub, endTime := range v {
+				if endTime <= now {
+					str := fmt.Sprintf("%d:%d:%d:%d:%d", pid, infoType, endTime, sub, StatusAlive)
+					if _, ok := del[str]; ok {
+						del[str]++
+					} else {
+						del[str] = 1
+					}
+				}
+			}
+		}
+	}
 	for k, v := range t {
 		if min == 0 {
 			min = v
