@@ -107,7 +107,7 @@ func TestWorker_Combine(t *testing.T) {
 				5: 100032,
 				6: 100009,
 			},
-			wantMin: 100003,
+			wantMin: 0,
 		},
 	}
 	for _, tt := range tests {

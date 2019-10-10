@@ -21,10 +21,11 @@ func NewHub(conf *config.Config, ctx context.Context) *Hub {
 	var a int32
 	subCtx, cancel := context.WithCancel(ctx)
 	h := &Hub{
-		c:      conf,
-		autoId: &a,
-		ctx:    subCtx,
-		cancel: cancel,
+		c:           conf,
+		autoId:      &a,
+		connections: make(map[int32]*Conn, 0),
+		ctx:         subCtx,
+		cancel:      cancel,
 	}
 	return h
 }

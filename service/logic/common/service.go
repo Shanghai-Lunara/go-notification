@@ -106,6 +106,7 @@ func (s *Service) rpcPing() {
 				s.rpcClose()
 				continue
 			}
+			log.Println("ping success")
 		}
 	}
 }
@@ -119,6 +120,7 @@ func (s *Service) getAllocatedNode() (addr string, err error) {
 	if res, err := s.rpcClient.gatewayClient.GetAllocatedNode(s.ctx, &pb.CommonRequest{Id: s.rpcClient.id, Addr: ""}); err != nil {
 		return "", err
 	} else {
+		log.Println("res:", res)
 		return res.Addr, err
 	}
 }
@@ -141,6 +143,7 @@ func New(conf *config.Config) *Service {
 		cancel: cancel,
 	}
 	s.workers = s.NewWorkers()
+	go s.maintainRpcClient()
 	return s
 }
 

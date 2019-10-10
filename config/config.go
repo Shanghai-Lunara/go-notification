@@ -36,7 +36,7 @@ type RedisConfig struct {
 }
 
 type Config struct {
-	Dispatch       DispatchConfig `yaml:"Disaptch,flow"`
+	Dispatch       DispatchConfig `yaml:"Dispatch,flow"`
 	Logic          LogicConfig    `yaml:"Logic,flow"`
 	HttpRequestApi string         `yaml:"HttpRequestAPI"`
 	Etcd           EtcdConfig     `yaml:"Etcd,flow"`

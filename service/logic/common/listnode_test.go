@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -101,6 +102,13 @@ func TestListNodes_listRightPush(t *testing.T) {
 				p: getNew(a1),
 			},
 		},
+		{
+			name:   "TestListNodes_listRightPush",
+			fields: l,
+			args: args{
+				p: toZero(a1),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -119,10 +127,16 @@ func TestListNodes_listRightPush(t *testing.T) {
 			break
 		}
 	}
+	log.Println("a[1]:", l.Players[1])
 }
 
 func getNew(a *Player) *Player {
 	a.Value *= 10
+	return a
+}
+
+func toZero(a *Player) *Player {
+	a.Value = 0
 	return a
 }
 

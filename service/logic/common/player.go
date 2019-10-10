@@ -28,7 +28,9 @@ func (w *Worker) UpdatePlayerValue(pid, min int) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if p, ok := w.listNodes.Players[pid]; ok {
-		min = w.TransferMinTime(min, p.Player.Delay)
+		if min != 0 {
+			min = w.TransferMinTime(min, p.Player.Delay)
+		}
 		if p.Player.Value != min {
 			p.Player.Value = min
 			w.listNodes.AppendOrModify(p.Player)
@@ -40,7 +42,9 @@ func (w *Worker) UpdatePlayerValue(pid, min int) {
 		} else {
 			delay = t
 		}
-		min = w.TransferMinTime(min, delay)
+		if min != 0 {
+			min = w.TransferMinTime(min, delay)
+		}
 		p := &Player{
 			Pid:   pid,
 			Value: min,
@@ -85,16 +89,16 @@ func (w *Worker) RefreshOne(str string) (err error) {
 }
 
 func (w *Worker) CheckOne(pid int) (err error) {
-	if meet, _, err := w.PullPlayerOne(pid, true); err != nil {
+	if meet, min, err := w.PullPlayerOne(pid, true); err != nil {
 		return err
 	} else {
 		if len(meet) > 0 {
 			if cid, _, err := w.dao.GetPlayerSettings(pid); err != nil {
 				return err
 			} else {
-				if cid == "" {
-					return nil
-				}
+				//if cid == "" {
+				//	return nil
+				//}
 				for k, v := range meet {
 					_ = v
 					if err = w.ApiPost(pid, k, cid); err != nil {
@@ -102,11 +106,13 @@ func (w *Worker) CheckOne(pid int) (err error) {
 					}
 				}
 			}
+			w.UpdatePlayerValue(pid, min)
 		}
 		return nil
 	}
 }
 
 func (w *Worker) ApiPost(pid, infoType int, cid string) (err error) {
+	log.Printf("api-post pid:%d type:%d cid:%s \n", pid, infoType, cid)
 	return nil
 }

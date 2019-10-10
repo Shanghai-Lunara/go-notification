@@ -31,6 +31,7 @@ func (d *Dao) GetSinglePlayerList(pid int) (p []string, err error) {
 		}
 	}()
 	key := fmt.Sprintf("consumer:one:%d", pid)
+	log.Println("key:", key)
 	if res, err := redis.Strings(redisConn.Do("lRange", key, 0, -1)); err != nil {
 		return nil, err
 	} else {
@@ -49,8 +50,8 @@ func (d *Dao) UpdateSinglePlayerList(pid int, m map[string]int) (err error) {
 	if _, err := redisConn.Do("multi"); err != nil {
 		return err
 	}
-	for k, v := range m {
-		if _, err := redisConn.Do("lRem", key, k, v); err != nil {
+	for k, num := range m {
+		if _, err := redisConn.Do("lRem", key, num, k); err != nil {
 			return err
 		}
 	}

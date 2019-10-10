@@ -20,7 +20,7 @@ type ListNodes struct {
 }
 
 func InitList() *ListNodes {
-	t := &ListNode{Player: &Player{Pid: 0, Value: 0}}
+	t := &ListNode{Player: &Player{Pid: 0, Value: 0, Delay: DelayDefault}}
 	l := &ListNodes{
 		Players: make(map[int]*ListNode, 0),
 	}
@@ -36,7 +36,20 @@ func (l *ListNodes) AppendOrModify(p *Player) {
 		m = &ListNode{Player: p}
 		l.Players[p.Pid] = m
 	}
-	l.listRightPush(l.Players[0], m)
+	if p.Value == 0 {
+		if l.Players[p.Pid].LLink != nil && l.Players[p.Pid].RLink != nil {
+			l.Players[p.Pid].LLink.RLink, l.Players[p.Pid].RLink.LLink = l.Players[p.Pid].RLink, l.Players[p.Pid].LLink
+		}
+		if l.Players[p.Pid].LLink != nil && l.Players[p.Pid].RLink == nil {
+			l.Players[p.Pid].LLink.RLink = nil
+		}
+		if l.Players[p.Pid].LLink == nil && l.Players[p.Pid].RLink != nil {
+			l.Players[p.Pid].RLink.LLink = nil
+		}
+		l.Players[p.Pid].RLink, l.Players[p.Pid].LLink = nil, nil
+	} else {
+		l.listRightPush(l.Players[0], m)
+	}
 }
 
 func (l *ListNodes) listRightPush(t *ListNode, p *ListNode) {

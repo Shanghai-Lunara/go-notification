@@ -31,7 +31,7 @@ func (w *Worker) appendLoop() {
 				err  error
 			)
 			if pStr, err = w.dao.LPopOne(w.addr); err != nil {
-				log.Print("appendLoop LPopOne err:", err)
+				log.Println("appendLoop LPopOne err:", err)
 				time.Sleep(time.Second * 1)
 				continue
 			}
@@ -47,27 +47,36 @@ func (w *Worker) appendLoop() {
 }
 
 func (w *Worker) logicLoop() {
-	tick := time.NewTicker(time.Millisecond * 1)
+	tick := time.NewTicker(time.Millisecond * 1000)
 	defer tick.Stop()
 	for {
 		select {
 		case <-w.ctx.Done():
 			return
 		case <-tick.C:
+			log.Println("listNodes-len:", len(w.listNodes.Players))
 			if t, ok := w.listNodes.Players[0]; ok {
 				if t.RLink != nil {
-					t.RLink.Player.mu.Lock()
-					if t.RLink.Player.Value > int(time.Now().Unix()) {
-						t.RLink.Player.mu.Unlock()
+					p := t.RLink.Player
+					p.mu.Lock()
+					if p.Value > int(time.Now().Unix()) {
+						p.mu.Unlock()
+						log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
 						continue
 					}
+					log.Println("listNodes continue 22222 p-Player:", p)
+					if err := w.CheckOne(t.RLink.Player.Pid); err != nil {
+						log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
+					}
+					log.Println("listNodes continue 33333")
+					p.mu.Unlock()
 				}
 			}
 		}
 	}
 }
 
-func (s *Service) initWorker(w *Worker) {
+func (s *Service) initWorker(w *Worker, id int) {
 	tick := time.NewTicker(time.Second * 1)
 	defer tick.Stop()
 	for {
@@ -75,16 +84,18 @@ func (s *Service) initWorker(w *Worker) {
 		case <-s.ctx.Done():
 			return
 		case <-tick.C:
+			log.Println("initWorker loop worker_id:", id)
 			if addr, err := s.getAllocatedNode(); err != nil {
 				continue
 			} else {
+				log.Println("initWorker addr:", addr)
 				if addr == "" {
 					continue
 				}
 				w.addr = addr
 				go w.appendLoop()
 				go w.logicLoop()
-				break
+				return
 			}
 		}
 	}
@@ -106,7 +117,7 @@ func (s *Service) NewWorkers() *Workers {
 			listNodes: InitList(),
 			ctx:       s.ctx,
 		}
-		go s.initWorker(w.workers[i])
+		go s.initWorker(w.workers[i], i)
 	}
 	return w
 }
