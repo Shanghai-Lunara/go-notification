@@ -90,16 +90,7 @@ func (w *Worker) Combine(info []string, pid int, clear bool) (del map[string]int
 		}
 	}
 	for k, v := range t {
-		if min == 0 {
-			if clear == true {
-				if v > now {
-					min = v
-				}
-			} else {
-				min = v
-			}
-		}
-		if min > v {
+		if min == 0 || min > v {
 			if clear == true {
 				if v > now {
 					min = v
