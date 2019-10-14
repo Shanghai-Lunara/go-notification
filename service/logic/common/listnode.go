@@ -16,6 +16,7 @@ type ListNode struct {
 }
 
 type ListNodes struct {
+	mu      sync.RWMutex
 	Players map[int]*ListNode
 }
 
@@ -29,6 +30,8 @@ func InitList() *ListNodes {
 }
 
 func (l *ListNodes) AppendOrModify(p *Player) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	var m *ListNode
 	if t, ok := l.Players[p.Pid]; ok {
 		m = t

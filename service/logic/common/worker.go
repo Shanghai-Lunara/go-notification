@@ -10,6 +10,7 @@ import (
 
 type Worker struct {
 	mu        sync.RWMutex
+	wg        sync.WaitGroup
 	dao       *dao.Dao
 	addr      string
 	count     int
@@ -24,6 +25,7 @@ func (w *Worker) appendLoop() {
 	for {
 		select {
 		case <-w.ctx.Done():
+			w.wg.Done()
 			return
 		case <-tick.C:
 			var (
@@ -47,20 +49,19 @@ func (w *Worker) appendLoop() {
 }
 
 func (w *Worker) logicLoop() {
-	tick := time.NewTicker(time.Millisecond * 1000)
+	tick := time.NewTicker(time.Millisecond * 10)
 	defer tick.Stop()
 	for {
 		select {
 		case <-w.ctx.Done():
+			w.wg.Done()
 			return
 		case <-tick.C:
 			log.Println("listNodes-len:", len(w.listNodes.Players))
 			if t, ok := w.listNodes.Players[0]; ok {
 				if t.RLink != nil {
 					p := t.RLink.Player
-					p.mu.Lock()
 					if p.Value > int(time.Now().Unix()) {
-						p.mu.Unlock()
 						log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
 						continue
 					}
@@ -69,7 +70,6 @@ func (w *Worker) logicLoop() {
 						log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
 					}
 					log.Println("listNodes continue 33333")
-					p.mu.Unlock()
 				}
 			}
 		}
@@ -93,6 +93,7 @@ func (s *Service) initWorker(w *Worker, id int) {
 					continue
 				}
 				w.addr = addr
+				w.wg.Add(2)
 				go w.appendLoop()
 				go w.logicLoop()
 				return
@@ -120,4 +121,10 @@ func (s *Service) NewWorkers() *Workers {
 		go s.initWorker(w.workers[i], i)
 	}
 	return w
+}
+
+func (s *Service) CloseWorkers() {
+	for _, v := range s.workers.workers {
+		v.wg.Wait()
+	}
 }

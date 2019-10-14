@@ -150,4 +150,5 @@ func New(conf *config.Config) *Service {
 func (s *Service) Close() {
 	s.dao.Close()
 	s.cancel()
+	s.CloseWorkers()
 }
