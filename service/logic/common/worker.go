@@ -41,7 +41,7 @@ func (w *Worker) appendLoop() {
 				time.Sleep(time.Millisecond * 500)
 				continue
 			}
-			if err = w.RefreshOne(pStr); err != nil {
+			if err = w.RefreshOne(pStr, true); err != nil {
 				log.Print("appendLoop RefreshOne err:", err)
 			}
 		}
@@ -57,10 +57,14 @@ func (w *Worker) logicLoop() {
 			w.wg.Done()
 			return
 		case <-tick.C:
-			log.Println("listNodes-len:", len(w.listNodes.Players))
+			log.Println("logicLoop listNodes-len:", len(w.listNodes.Players))
+			if tmp, ok := w.listNodes.Players[1]; ok {
+				log.Println("logicLoop Players[1]:", tmp.Player)
+			}
 			if t, ok := w.listNodes.Players[0]; ok {
 				if t.RLink != nil {
 					p := t.RLink.Player
+					log.Println("logicLoop pid:", p.Pid, " delay:", p.Delay)
 					if p.Value > int(time.Now().Unix()) {
 						log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
 						continue

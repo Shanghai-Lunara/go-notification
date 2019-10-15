@@ -25,31 +25,15 @@ func (w *Worker) PullPlayerOne(pid int, clear bool) (meet map[int]int, min int, 
 }
 
 func (w *Worker) UpdatePlayerValue(pid, min int) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if p, ok := w.listNodes.Players[pid]; ok {
-		if min != 0 {
-			min = w.TransferMinTime(min, p.Player.Delay)
-		}
-		if p.Player.Value != min {
-			p.Player.Value = min
-			w.listNodes.AppendOrModify(p.Player)
-		}
-	} else {
-		delay := DelayDefault
-		if _, t, err := w.dao.GetPlayerSettings(pid); err != nil {
-			log.Println("UpdatePlayerListNodes GetPlayerSettings err:", err)
-		} else {
-			delay = t
-		}
-		if min != 0 {
-			min = w.TransferMinTime(min, delay)
-		}
-		p := &Player{
-			Pid:   pid,
-			Value: min,
-			Delay: delay,
-		}
+	p := w.GetPlayer(pid)
+	if min != 0 {
+		min = w.TransferMinTime(min, p.Delay)
+		log.Printf("UpdatePlayerValue TransferMinTime min:%d", min)
+	}
+	log.Printf("UpdatePlayerValue 111111 min:%d", min)
+	if p.Value != min {
+		log.Printf("UpdatePlayerValue 2222222 min:%d", min)
+		p.Value = min
 		w.listNodes.AppendOrModify(p)
 	}
 }
@@ -58,27 +42,27 @@ func (w *Worker) UpdatePlayerSettings(pid int) (err error) {
 	if _, delay, err := w.dao.GetPlayerSettings(pid); err != nil {
 		return err
 	} else {
-		if p, ok := w.listNodes.Players[pid]; ok {
-			if p.Player.Value == 0 {
-				p.Player.Delay = delay
-				return nil
-			} else {
-				if p.Player.Delay != delay {
-					if p.Player.Delay == DelayDefault {
-						p.Player.Value = w.TransferMinTime(p.Player.Value, delay)
-						w.listNodes.AppendOrModify(p.Player)
-					} else {
-						if err = w.RefreshOne(strconv.Itoa(pid)); err != nil {
-							return err
-						}
-					}
-				} else {
-					return nil
-				}
-			}
+		p := w.GetPlayer(pid)
+		if p.Value == 0 {
+			log.Println(111111111)
+			p.Delay = delay
+			return nil
 		} else {
-			if err = w.RefreshOne(strconv.Itoa(pid)); err != nil {
-				return err
+			log.Println(2222222)
+			if p.Delay != delay {
+				log.Println(333333)
+				if p.Delay == DelayDefault {
+					log.Println(44444)
+					p.Delay = delay
+					p.Value = w.TransferMinTime(p.Value, delay)
+				} else {
+					log.Println(5555555)
+					p.Delay = delay
+					if err = w.RefreshOne(strconv.Itoa(pid), false); err != nil {
+						log.Println(666666)
+						return err
+					}
+				}
 			}
 		}
 	}
@@ -99,12 +83,12 @@ func (w *Worker) GetPlayer(pid int) (p *Player) {
 	}
 }
 
-func (w *Worker) RefreshOne(str string) (err error) {
+func (w *Worker) RefreshOne(str string, update bool) (err error) {
 	var (
 		pid int
 		p   *Player
 	)
-	tmp := strings.Split(str, ",")
+	tmp := strings.Split(str, ":")
 	if pid, err = strconv.Atoi(tmp[0]); err != nil {
 		return err
 	}
@@ -117,6 +101,11 @@ func (w *Worker) RefreshOne(str string) (err error) {
 	if _, min, err := w.PullPlayerOne(pid, false); err != nil {
 		return err
 	} else {
+		if update == true {
+			if err = w.UpdatePlayerSettings(pid); err != nil {
+				return err
+			}
+		}
 		w.UpdatePlayerValue(pid, min)
 		return nil
 	}
