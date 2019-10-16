@@ -64,6 +64,10 @@ func (w *Worker) appendLoop() {
 				count++
 				//time.Sleep(time.Millisecond * 10)
 			}
+			if count == 0 {
+				time.Sleep(time.Second * 1)
+				continue
+			}
 			if err = w.dao.LTRIM(w.addr, count); err != nil {
 				log.Print("appendLoop LTRIM err:", err)
 			}
@@ -74,16 +78,14 @@ func (w *Worker) appendLoop() {
 func (w *Worker) logicLoop() {
 	tick := time.NewTicker(time.Millisecond * 10)
 	defer tick.Stop()
+	tick1 := time.NewTicker(time.Second * 1)
+	defer tick1.Stop()
 	for {
 		select {
 		case <-w.ctx.Done():
 			w.wg.Done()
 			return
 		case <-tick.C:
-			log.Println("logicLoop listNodes-len:", len(w.listNodes.Players))
-			if tmp, ok := w.listNodes.Players[1]; ok {
-				log.Println("logicLoop Players[1]:", tmp.Player)
-			}
 			if t, ok := w.listNodes.Players[0]; ok {
 				if t.RLink != nil {
 					p := t.RLink.Player
@@ -95,6 +97,11 @@ func (w *Worker) logicLoop() {
 						log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
 					}
 				}
+			}
+		case <-tick1.C:
+			log.Println("logicLoop listNodes-len:", len(w.listNodes.Players))
+			if tmp, ok := w.listNodes.Players[1]; ok {
+				log.Println("logicLoop Players[1]:", tmp.Player)
 			}
 		}
 	}
