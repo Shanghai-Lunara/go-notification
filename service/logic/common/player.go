@@ -94,6 +94,7 @@ func (w *Worker) RefreshOne(str string, update bool) (err error) {
 	if p, err = w.GetPlayer(pid); err != nil {
 		return err
 	}
+	log.Println("RefreshOne p:", p)
 	if len(tmp) > 1 {
 		log.Println("RefreshOne UpdatePlayerSettings 111111")
 		if up, err = w.UpdatePlayerSettings(p); err != nil {
@@ -114,7 +115,7 @@ func (w *Worker) RefreshOne(str string, update bool) (err error) {
 	if _, min, err := w.PullPlayerOne(pid, false); err != nil {
 		return err
 	} else {
-		log.Println("RefreshOne UpdatePlayerValue 3333333")
+		log.Println("RefreshOne UpdatePlayerValue 3333333 PullPlayerOne-min:", min)
 		w.UpdatePlayerValue(p, min)
 		return nil
 	}

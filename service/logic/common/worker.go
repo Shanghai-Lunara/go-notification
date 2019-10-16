@@ -34,20 +34,38 @@ func (w *Worker) appendLoop() {
 			return
 		case <-tick.C:
 			var (
-				pStr string
-				err  error
+				err   error
+				p     []string
+				count int
 			)
-			if pStr, err = w.dao.LPopOne(w.addr); err != nil {
-				log.Println("appendLoop LPopOne err:", err)
+			if p, err = w.dao.LRange(w.addr, 200); err != nil {
+				log.Println("appendLoop LRange err:", err)
 				time.Sleep(time.Second * 1)
 				continue
 			}
-			if pStr == "" {
-				time.Sleep(time.Millisecond * 500)
-				continue
+			count = 0
+			for _, v := range p {
+				if w.status == WorkerClosed {
+					if count == 0 {
+						return
+					}
+					if err = w.dao.LTRIM(w.addr, count); err != nil {
+						log.Print("appendLoop WorkerClosed LTRIM err:", err)
+					}
+					return
+				}
+				if v == "" {
+					time.Sleep(time.Millisecond * 500)
+					continue
+				}
+				if err = w.RefreshOne(v, true); err != nil {
+					log.Print("appendLoop RefreshOne err:", err)
+				}
+				count++
+				//time.Sleep(time.Millisecond * 10)
 			}
-			if err = w.RefreshOne(pStr, true); err != nil {
-				log.Print("appendLoop RefreshOne err:", err)
+			if err = w.dao.LTRIM(w.addr, count); err != nil {
+				log.Print("appendLoop LTRIM err:", err)
 			}
 		}
 	}
@@ -69,16 +87,13 @@ func (w *Worker) logicLoop() {
 			if t, ok := w.listNodes.Players[0]; ok {
 				if t.RLink != nil {
 					p := t.RLink.Player
-					log.Println("logicLoop pid:", p.Pid, " delay:", p.Delay)
 					if p.Value > int(time.Now().Unix()) {
 						log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
 						continue
 					}
-					log.Println("listNodes continue 22222 p-Player:", p)
 					if err := w.CheckOne(t.RLink.Player.Pid); err != nil {
 						log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
 					}
-					log.Println("listNodes continue 33333")
 				}
 			}
 		}

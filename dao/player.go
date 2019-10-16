@@ -8,6 +8,35 @@ import (
 	"strings"
 )
 
+func (d *Dao) LRange(addr string, length int) (p []string, err error) {
+	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
+	defer func() {
+		if err := redisConn.Close(); err != nil {
+			log.Println("LPopOne redisConn.Close err:", err)
+		}
+	}()
+	key := "consumer_list"
+	if res, err := redis.Strings(redisConn.Do("lRange", key, 0, length-1)); err != nil {
+		return p, err
+	} else {
+		return res, nil
+	}
+}
+
+func (d *Dao) LTRIM(addr string, length int) (err error) {
+	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
+	defer func() {
+		if err := redisConn.Close(); err != nil {
+			log.Println("LPopOne redisConn.Close err:", err)
+		}
+	}()
+	key := "consumer_list"
+	if _, err := redisConn.Do("LTRIM", key, length, -1); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (d *Dao) LPopOne(addr string) (p string, err error) {
 	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
 	defer func() {
