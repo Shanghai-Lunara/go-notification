@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+const (
+	WorkerAlive = iota
+	WorkerClosed
+)
+
 type Worker struct {
 	mu        sync.RWMutex
 	wg        sync.WaitGroup
@@ -119,6 +124,7 @@ func (s *Service) NewWorkers() *Workers {
 			dao:       s.dao,
 			addr:      "",
 			count:     0,
+			status:    WorkerAlive,
 			listNodes: InitList(),
 			ctx:       s.ctx,
 		}
@@ -128,6 +134,9 @@ func (s *Service) NewWorkers() *Workers {
 }
 
 func (s *Service) CloseWorkers() {
+	for _, v := range s.workers.workers {
+		v.status = WorkerClosed
+	}
 	for _, v := range s.workers.workers {
 		v.wg.Wait()
 	}
