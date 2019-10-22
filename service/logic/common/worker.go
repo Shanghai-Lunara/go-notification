@@ -10,6 +10,7 @@ import (
 
 const (
 	WorkerAlive = iota
+	WorkerInterrupt
 	WorkerClosed
 )
 
@@ -38,6 +39,10 @@ func (w *Worker) appendLoop() {
 				p     []string
 				count int
 			)
+			if w.status == WorkerInterrupt {
+				time.Sleep(time.Second * 1)
+				continue
+			}
 			if p, err = w.dao.LRange(w.addr, 200); err != nil {
 				log.Println("appendLoop LRange err:", err)
 				time.Sleep(time.Second * 1)
@@ -45,6 +50,9 @@ func (w *Worker) appendLoop() {
 			}
 			count = 0
 			for _, v := range p {
+				if w.status == WorkerInterrupt {
+					continue
+				}
 				if w.status == WorkerClosed {
 					if count == 0 {
 						return
@@ -86,6 +94,11 @@ func (w *Worker) logicLoop() {
 			w.wg.Done()
 			return
 		case <-tick.C:
+			if w.status == WorkerInterrupt {
+				log.Println("logicLoop WorkerInterrupt w.id:", w.addr)
+				time.Sleep(time.Second * 1)
+				continue
+			}
 			if t, ok := w.listNodes.Players[0]; ok {
 				if t.RLink != nil {
 					p := t.RLink.Player
@@ -134,6 +147,7 @@ func (s *Service) initWorker(w *Worker, id int) {
 }
 
 type Workers struct {
+	mu      sync.RWMutex
 	workers map[int]*Worker
 }
 
@@ -156,10 +170,19 @@ func (s *Service) NewWorkers() *Workers {
 }
 
 func (s *Service) CloseWorkers() {
-	for _, v := range s.workers.workers {
-		v.status = WorkerClosed
-	}
+	s.ChangeWorkerStatus(WorkerClosed)
 	for _, v := range s.workers.workers {
 		v.wg.Wait()
+	}
+}
+
+func (s *Service) ChangeWorkerStatus(status int) {
+	s.workers.mu.Lock()
+	defer s.workers.mu.Lock()
+	for _, v := range s.workers.workers {
+		if v.status == WorkerClosed {
+			continue
+		}
+		v.status = status
 	}
 }

@@ -58,6 +58,7 @@ func (s *Service) initRpcClient(conf *config.Config) (err error) {
 	s.rpcClient.status = RpcAlive
 	s.rpcClient.gatewayClient = c
 	s.rpcClient.id = res.Id
+	s.ChangeWorkerStatus(WorkerAlive)
 	return nil
 }
 
@@ -114,6 +115,7 @@ func (s *Service) rpcPing() {
 func (s *Service) rpcClose() {
 	s.rpcClient.status = RpcClosed
 	s.rpcClient.closeChan <- 1
+	s.ChangeWorkerStatus(WorkerInterrupt)
 }
 
 func (s *Service) getAllocatedNode() (addr string, err error) {
