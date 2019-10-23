@@ -40,12 +40,20 @@ func (h *Hub) close(c *Conn) {
 	delete(h.connections, c.id)
 }
 
-func (s *Service) handleInit(addr net.Addr, ext string) int32 {
-	id := s.hub.getClientId()
+func (s *Service) handleInit(addr net.Addr, lastId int32) int32 {
 	s.hub.mu.Lock()
 	defer s.hub.mu.Unlock()
+	var (
+		id int32
+	)
+	if lastId <= *s.hub.autoId && lastId != 0 {
+		id = lastId
+	} else {
+		id = s.hub.getClientId()
+	}
 	c := s.hub.NewConn(id, addr)
 	s.hub.connections[id] = c
+	go s.hub.keepAlive(c)
 	return c.id
 }
 

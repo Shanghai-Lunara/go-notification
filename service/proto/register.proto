@@ -3,7 +3,7 @@ syntax = "proto3";
 package register.push.v1;
 
 message RegisterRequest {
-    string externalAddr = 1;
+    int32 lastId = 1;
     string message = 2;
 }
 

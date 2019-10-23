@@ -178,7 +178,7 @@ func (s *Service) CloseWorkers() {
 
 func (s *Service) ChangeWorkerStatus(status int) {
 	s.workers.mu.Lock()
-	defer s.workers.mu.Lock()
+	defer s.workers.mu.Unlock()
 	for _, v := range s.workers.workers {
 		if v.status == WorkerClosed {
 			continue

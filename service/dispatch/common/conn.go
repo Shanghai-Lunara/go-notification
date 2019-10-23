@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"log"
 	"net"
 	"time"
 )
@@ -36,12 +37,14 @@ func (h *Hub) NewConn(id int32, addr net.Addr) *Conn {
 }
 
 func (h *Hub) keepAlive(c *Conn) {
-	tick := time.NewTicker(time.Second * time.Duration(h.c.Dispatch.HeartBeatInternal))
+	tick := time.NewTicker(time.Second * 1)
+	internal := time.Second * time.Duration(h.c.Dispatch.HeartBeatInternal)
 	defer tick.Stop()
 	for {
 		select {
 		case <-tick.C:
-			if time.Now().Sub(c.heartTime) > 0 {
+			if time.Now().Sub(c.heartTime) > internal {
+				log.Print("keepAlive timeout c:", c)
 				c.status = ConnClosed
 				h.close(c)
 				return

@@ -44,8 +44,8 @@ func (s *server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	} else {
 		log.Println("peer.FromContext !ok")
 	}
-	id := s.service.handleInit(p.Addr, req.ExternalAddr)
-	return &pb.RegisterResponse{Id: id, Message: req.ExternalAddr}, nil
+	id := s.service.handleInit(p.Addr, req.LastId)
+	return &pb.RegisterResponse{Id: id, Message: req.Message}, nil
 }
 
 func (s *server) Ping(ctx context.Context, req *pb.PingRequest) (*pb.PongResponse, error) {

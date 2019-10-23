@@ -50,7 +50,7 @@ func (s *Service) initRpcClient(conf *config.Config) (err error) {
 	}
 	c := pb.NewGatewayClient(s.rpcClient.conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-	res, err := c.Register(ctx, &pb.RegisterRequest{Message: time.Now().String(), ExternalAddr: ""})
+	res, err := c.Register(ctx, &pb.RegisterRequest{LastId: s.rpcClient.id, Message: time.Now().String()})
 	if err != nil {
 		return errors.New(fmt.Sprintf("unexpected error from Register: %v", err))
 	}
@@ -64,6 +64,7 @@ func (s *Service) initRpcClient(conf *config.Config) (err error) {
 
 func (s *Service) maintainRpcClient() {
 	s.rpcClient = &RpcClient{
+		id:        0,
 		closeChan: make(chan int),
 		status:    RpcClosed,
 	}
@@ -75,6 +76,7 @@ func (s *Service) maintainRpcClient() {
 	for {
 		select {
 		case <-s.rpcClient.ctx.Done():
+			close(s.rpcClient.closeChan)
 			return
 		case <-s.rpcClient.closeChan:
 			if s.rpcClient.status == RpcAlive {
@@ -119,6 +121,9 @@ func (s *Service) rpcClose() {
 }
 
 func (s *Service) getAllocatedNode() (addr string, err error) {
+	if s.rpcClient.gatewayClient == nil {
+		return "", nil
+	}
 	if res, err := s.rpcClient.gatewayClient.GetAllocatedNode(s.ctx, &pb.CommonRequest{Id: s.rpcClient.id, Addr: ""}); err != nil {
 		return "", err
 	} else {
