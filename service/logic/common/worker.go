@@ -10,6 +10,7 @@ import (
 
 const (
 	WorkerAlive = iota
+	WorkerLoading
 	WorkerInterrupt
 	WorkerClosed
 )
@@ -25,6 +26,23 @@ type Worker struct {
 	ctx       context.Context
 }
 
+func (w *Worker) loadCache() {
+	tick := time.NewTicker(time.Second * 1)
+	defer func() {
+		tick.Stop()
+		w.status = WorkerAlive
+	}()
+	for {
+		select {
+		case <-w.ctx.Done():
+			w.wg.Done()
+			return
+		case <-tick.C:
+
+		}
+	}
+}
+
 func (w *Worker) appendLoop() {
 	tick := time.NewTicker(time.Millisecond * 10)
 	defer tick.Stop()
@@ -34,50 +52,42 @@ func (w *Worker) appendLoop() {
 			w.wg.Done()
 			return
 		case <-tick.C:
-			var (
-				err   error
-				p     []string
-				count int
-			)
-			if w.status == WorkerInterrupt {
-				time.Sleep(time.Second * 1)
-				continue
-			}
-			if p, err = w.dao.LRange(w.addr, 200); err != nil {
-				log.Println("appendLoop LRange err:", err)
-				time.Sleep(time.Second * 1)
-				continue
-			}
-			count = 0
-			for _, v := range p {
-				if w.status == WorkerInterrupt {
-					continue
-				}
-				if w.status == WorkerClosed {
-					if count == 0 {
-						return
+			if w.status == WorkerAlive {
+				var (
+					err   error
+					p     []string
+					count int
+				)
+				if p, err = w.dao.LRange(w.addr, 200); err != nil {
+					log.Println("appendLoop LRange err:", err)
+					time.Sleep(time.Second * 1)
+				} else {
+					count = 0
+					for _, v := range p {
+						if w.status == WorkerInterrupt {
+							continue
+						}
+						if w.status == WorkerClosed {
+							if count > 0 {
+								if err = w.dao.LTRIM(w.addr, count); err != nil {
+									log.Print("appendLoop WorkerClosed LTRIM err:", err)
+								}
+							}
+							return
+						}
+						if v != "" {
+							if err = w.RefreshOne(v, true); err != nil {
+								log.Print("appendLoop RefreshOne err:", err)
+							}
+							count++
+						}
 					}
-					if err = w.dao.LTRIM(w.addr, count); err != nil {
-						log.Print("appendLoop WorkerClosed LTRIM err:", err)
+					if count > 0 {
+						if err = w.dao.LTRIM(w.addr, count); err != nil {
+							log.Print("appendLoop LTRIM err:", err)
+						}
 					}
-					return
 				}
-				if v == "" {
-					time.Sleep(time.Millisecond * 500)
-					continue
-				}
-				if err = w.RefreshOne(v, true); err != nil {
-					log.Print("appendLoop RefreshOne err:", err)
-				}
-				count++
-				//time.Sleep(time.Millisecond * 10)
-			}
-			if count == 0 {
-				time.Sleep(time.Second * 1)
-				continue
-			}
-			if err = w.dao.LTRIM(w.addr, count); err != nil {
-				log.Print("appendLoop LTRIM err:", err)
 			}
 		}
 	}
@@ -94,20 +104,20 @@ func (w *Worker) logicLoop() {
 			w.wg.Done()
 			return
 		case <-tick.C:
-			if w.status == WorkerInterrupt {
-				log.Println("logicLoop WorkerInterrupt w.id:", w.addr)
+			if w.status == WorkerLoading || w.status == WorkerInterrupt {
+				log.Println("logicLoop WorkerLoading orWorkerInterrupt w.id:", w.addr)
 				time.Sleep(time.Second * 1)
-				continue
-			}
-			if t, ok := w.listNodes.Players[0]; ok {
-				if t.RLink != nil {
-					p := t.RLink.Player
-					if p.Value > int(time.Now().Unix()) {
-						log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
-						continue
-					}
-					if err := w.CheckOne(t.RLink.Player.Pid); err != nil {
-						log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
+			} else {
+				if t, ok := w.listNodes.Players[0]; ok {
+					if t.RLink != nil {
+						p := t.RLink.Player
+						if p.Value > int(time.Now().Unix()) {
+							log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
+						} else {
+							if err := w.CheckOne(t.RLink.Player.Pid); err != nil {
+								log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
+							}
+						}
 					}
 				}
 			}
@@ -130,17 +140,17 @@ func (s *Service) initWorker(w *Worker, id int) {
 		case <-tick.C:
 			log.Println("initWorker loop worker_id:", id)
 			if addr, err := s.getAllocatedNode(); err != nil {
-				continue
+				log.Println("getAllocatedNode err:", err)
 			} else {
 				log.Println("initWorker addr:", addr)
-				if addr == "" {
-					continue
+				if addr != "" {
+					w.addr = addr
+					w.wg.Add(3)
+					go w.loadCache()
+					go w.appendLoop()
+					go w.logicLoop()
+					return
 				}
-				w.addr = addr
-				w.wg.Add(2)
-				go w.appendLoop()
-				go w.logicLoop()
-				return
 			}
 		}
 	}
@@ -160,7 +170,7 @@ func (s *Service) NewWorkers() *Workers {
 			dao:       s.dao,
 			addr:      "",
 			count:     0,
-			status:    WorkerAlive,
+			status:    WorkerLoading,
 			listNodes: InitList(),
 			ctx:       s.ctx,
 		}

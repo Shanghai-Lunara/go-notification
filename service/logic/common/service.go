@@ -58,7 +58,7 @@ func (s *Service) initRpcClient(conf *config.Config) (err error) {
 	s.rpcClient.status = RpcAlive
 	s.rpcClient.gatewayClient = c
 	s.rpcClient.id = res.Id
-	s.ChangeWorkerStatus(WorkerAlive)
+	s.ChangeWorkerStatus(WorkerLoading)
 	return nil
 }
 
