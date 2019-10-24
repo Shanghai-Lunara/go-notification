@@ -13,7 +13,7 @@ func (d *Dao) ZRevRange(addr string, start, end int) (p []string, err error) {
 	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
 	defer func() {
 		if err := redisConn.Close(); err != nil {
-			log.Println("LPopOne redisConn.Close err:", err)
+			log.Println("ZRevRange redisConn.Close err:", err)
 		}
 	}()
 	key := "consumer:cache"
@@ -28,7 +28,7 @@ func (d *Dao) ZAdd(pid int) (err error) {
 	redisConn := d.Redis.GetRedisPool(pid).Get()
 	defer func() {
 		if err := redisConn.Close(); err != nil {
-			log.Println("GetSinglePlayerList redisConn.Close err:", err)
+			log.Println("ZAdd redisConn.Close err:", err)
 		}
 	}()
 	key := "consumer:cache"
@@ -43,7 +43,7 @@ func (d *Dao) LRange(addr string, length int) (p []string, err error) {
 	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
 	defer func() {
 		if err := redisConn.Close(); err != nil {
-			log.Println("LPopOne redisConn.Close err:", err)
+			log.Println("LRange redisConn.Close err:", err)
 		}
 	}()
 	key := "consumer_list"
@@ -58,7 +58,7 @@ func (d *Dao) LTRIM(addr string, length int) (err error) {
 	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
 	defer func() {
 		if err := redisConn.Close(); err != nil {
-			log.Println("LPopOne redisConn.Close err:", err)
+			log.Println("LTRIM redisConn.Close err:", err)
 		}
 	}()
 	key := "consumer_list"
