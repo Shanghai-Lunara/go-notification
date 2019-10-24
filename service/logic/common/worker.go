@@ -18,6 +18,7 @@ const (
 type Worker struct {
 	mu        sync.RWMutex
 	wg        sync.WaitGroup
+	id        int
 	dao       *dao.Dao
 	addr      string
 	count     int
@@ -29,16 +30,46 @@ type Worker struct {
 func (w *Worker) loadCache() {
 	tick := time.NewTicker(time.Second * 1)
 	defer func() {
+		w.wg.Done()
 		tick.Stop()
 		w.status = WorkerAlive
 	}()
 	for {
 		select {
 		case <-w.ctx.Done():
-			w.wg.Done()
 			return
 		case <-tick.C:
-
+			if w.status == WorkerClosed {
+				return
+			}
+			var (
+				p          []string
+				err        error
+				start, end int
+			)
+			length := 1000
+			start, end = 0, 0
+			for {
+				start = end
+				end += length
+				if p, err = w.dao.ZRevRange(w.addr, start, end); err != nil {
+					log.Println("err:", err)
+				} else {
+					for _, v := range p {
+						if w.status == WorkerClosed {
+							return
+						}
+						if err = w.RefreshOne(v, true); err != nil {
+							log.Print("loadCache RefreshOne err:", err)
+						}
+					}
+					if len(p) != length {
+						log.Println("ZRevRange break")
+						return
+					}
+					time.Sleep(time.Millisecond * 200)
+				}
+			}
 		}
 	}
 }
@@ -46,10 +77,10 @@ func (w *Worker) loadCache() {
 func (w *Worker) appendLoop() {
 	tick := time.NewTicker(time.Millisecond * 10)
 	defer tick.Stop()
+	defer w.wg.Done()
 	for {
 		select {
 		case <-w.ctx.Done():
-			w.wg.Done()
 			return
 		case <-tick.C:
 			if w.status == WorkerAlive {
@@ -95,13 +126,15 @@ func (w *Worker) appendLoop() {
 
 func (w *Worker) logicLoop() {
 	tick := time.NewTicker(time.Millisecond * 10)
-	defer tick.Stop()
 	tick1 := time.NewTicker(time.Second * 1)
-	defer tick1.Stop()
+	defer func() {
+		tick.Stop()
+		tick1.Stop()
+		w.wg.Done()
+	}()
 	for {
 		select {
 		case <-w.ctx.Done():
-			w.wg.Done()
 			return
 		case <-tick.C:
 			if w.status == WorkerLoading || w.status == WorkerInterrupt {
@@ -112,7 +145,8 @@ func (w *Worker) logicLoop() {
 					if t.RLink != nil {
 						p := t.RLink.Player
 						if p.Value > int(time.Now().Unix()) {
-							log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
+							//log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
+							time.Sleep(time.Millisecond * 5)
 						} else {
 							if err := w.CheckOne(t.RLink.Player.Pid); err != nil {
 								log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
@@ -122,7 +156,7 @@ func (w *Worker) logicLoop() {
 				}
 			}
 		case <-tick1.C:
-			log.Println("logicLoop listNodes-len:", len(w.listNodes.Players))
+			log.Printf("logicLoop WorkerId:%d addr:%s listNodes-len: %d \n", w.id, w.addr, len(w.listNodes.Players))
 			if tmp, ok := w.listNodes.Players[1]; ok {
 				log.Println("logicLoop Players[1]:", tmp.Player)
 			}
@@ -130,7 +164,7 @@ func (w *Worker) logicLoop() {
 	}
 }
 
-func (s *Service) initWorker(w *Worker, id int) {
+func (s *Service) initWorker(w *Worker) {
 	tick := time.NewTicker(time.Second * 1)
 	defer tick.Stop()
 	for {
@@ -138,7 +172,7 @@ func (s *Service) initWorker(w *Worker, id int) {
 		case <-s.ctx.Done():
 			return
 		case <-tick.C:
-			log.Println("initWorker loop worker_id:", id)
+			log.Println("initWorker loop worker_id:", w.id)
 			if addr, err := s.getAllocatedNode(); err != nil {
 				log.Println("getAllocatedNode err:", err)
 			} else {
@@ -167,6 +201,7 @@ func (s *Service) NewWorkers() *Workers {
 	}
 	for i := 0; i < s.c.Logic.WorkerNum; i++ {
 		w.workers[i] = &Worker{
+			id:        i,
 			dao:       s.dao,
 			addr:      "",
 			count:     0,
@@ -174,7 +209,7 @@ func (s *Service) NewWorkers() *Workers {
 			listNodes: InitList(),
 			ctx:       s.ctx,
 		}
-		go s.initWorker(w.workers[i], i)
+		go s.initWorker(w.workers[i])
 	}
 	return w
 }

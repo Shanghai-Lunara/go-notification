@@ -73,6 +73,9 @@ func (w *Worker) GetPlayer(pid int) (p *Player, err error) {
 			Value: 0,
 			Delay: DelayDefault,
 		}
+		if err = w.dao.ZAdd(pid); err != nil {
+			return nil, err
+		}
 		w.listNodes.AppendOrModify(p)
 		if _, err = w.UpdatePlayerSettings(p); err != nil {
 			return nil, err

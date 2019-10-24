@@ -6,7 +6,38 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
+
+func (d *Dao) ZRevRange(addr string, start, end int) (p []string, err error) {
+	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
+	defer func() {
+		if err := redisConn.Close(); err != nil {
+			log.Println("LPopOne redisConn.Close err:", err)
+		}
+	}()
+	key := "consumer:cache"
+	if res, err := redis.Strings(redisConn.Do("ZRevRange", key, start, end-1)); err != nil {
+		return p, err
+	} else {
+		return res, nil
+	}
+}
+
+func (d *Dao) ZAdd(pid int) (err error) {
+	redisConn := d.Redis.GetRedisPool(pid).Get()
+	defer func() {
+		if err := redisConn.Close(); err != nil {
+			log.Println("GetSinglePlayerList redisConn.Close err:", err)
+		}
+	}()
+	key := "consumer:cache"
+	if _, err = redisConn.Do("ZAdd", key, time.Now().Unix(), pid); err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
 
 func (d *Dao) LRange(addr string, length int) (p []string, err error) {
 	redisConn := d.Redis.GetRedisClientByAddr(addr).Get()
