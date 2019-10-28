@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-notification/api"
 	"go-notification/config"
 	"go-notification/dao"
 	"log"
@@ -137,6 +138,7 @@ type Service struct {
 	dao       *dao.Dao
 	rpcClient *RpcClient
 	workers   *Workers
+	push      api.Push
 	ctx       context.Context
 	cancel    context.CancelFunc
 }
@@ -150,8 +152,20 @@ func New(conf *config.Config) *Service {
 		cancel: cancel,
 	}
 	s.workers = s.NewWorkers()
+	s.InitPush()
 	go s.maintainRpcClient()
 	return s
+}
+
+func (s *Service) InitPush() {
+	if s.c.PushMode.Internal {
+		s.push = api.NewInternalAPI(s.c)
+		return
+	}
+	if s.c.PushMode.Firebase {
+		s.push = api.NewFirebaseAPI(s.c)
+		return
+	}
 }
 
 func (s *Service) Close() {

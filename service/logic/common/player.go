@@ -127,9 +127,6 @@ func (w *Worker) CheckOne(pid int) (err error) {
 			if cid, _, err := w.dao.GetPlayerSettings(pid); err != nil {
 				return err
 			} else {
-				//if cid == "" {
-				//	return nil
-				//}
 				for k, v := range meet {
 					_ = v
 					if err = w.ApiPost(pid, k, cid); err != nil {
@@ -145,5 +142,8 @@ func (w *Worker) CheckOne(pid int) (err error) {
 
 func (w *Worker) ApiPost(pid, infoType int, cid string) (err error) {
 	log.Printf("api-post pid:%d type:%d cid:%s \n", pid, infoType, cid)
+	if cid == "" {
+		return nil
+	}
 	return nil
 }

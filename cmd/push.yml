@@ -13,6 +13,10 @@ Logic:
   log_file: "push-logic.log"
   worker_num: 2
 
+PushMode:
+  Internal: true
+  Firebase: false
+
 HttpRequestAPI: "http://192.168.16.222/hero/1.0/cn/api/push.php"
 
 Etcd:

@@ -19,8 +19,8 @@ func NewInternalAPI(conf *config.Config) Push {
 	return api
 }
 
-func (c *InternalAPI) Send(workerId, pid, infoType int, token string) (result bool, err error) {
-	requestUrl := fmt.Sprintf("%s?pid=%d&cid=%s&ntype=%d", c.c.HttpRequestApi, pid, token, infoType)
+func (c *InternalAPI) Send(m *Message) (result bool, err error) {
+	requestUrl := fmt.Sprintf("%s?pid=%d&cid=%s&ntype=%d", c.c.HttpRequestApi, m.Pid, m.Token, m.InfoType)
 	start := time.Now()
 	resp, err := http.Get(requestUrl)
 	if err != nil {

@@ -35,10 +35,16 @@ type RedisConfig struct {
 	Redis [][]string `yaml:"Redis,flow"`
 }
 
+type PushConfig struct {
+	Internal bool `yaml:"internal"`
+	Firebase bool `yaml:"firebase"`
+}
+
 type Config struct {
 	Dispatch       DispatchConfig `yaml:"Dispatch,flow"`
 	Logic          LogicConfig    `yaml:"Logic,flow"`
 	HttpRequestApi string         `yaml:"HttpRequestAPI"`
+	PushMode       PushConfig     `json:"push_mode"`
 	Etcd           EtcdConfig     `yaml:"Etcd,flow"`
 	RedisConfig    `yaml:",inline"`
 	ConfigPath     string
