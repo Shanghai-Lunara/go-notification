@@ -1,6 +1,9 @@
 package common
 
 import (
+	"errors"
+	"fmt"
+	"go-notification/api"
 	"log"
 	"strconv"
 	"strings"
@@ -130,7 +133,7 @@ func (w *Worker) CheckOne(pid int) (err error) {
 				for k, v := range meet {
 					_ = v
 					if err = w.ApiPost(pid, k, cid); err != nil {
-						return nil
+						return err
 					}
 				}
 			}
@@ -144,6 +147,10 @@ func (w *Worker) ApiPost(pid, infoType int, cid string) (err error) {
 	log.Printf("api-post pid:%d type:%d cid:%s \n", pid, infoType, cid)
 	if cid == "" {
 		return nil
+	}
+	m := api.NewMessage(w.id, pid, infoType, cid)
+	if _, err := w.push.Send(m); err != nil {
+		return errors.New(fmt.Sprintf("ApiPost push.Send err:%v", err))
 	}
 	return nil
 }

@@ -151,8 +151,8 @@ func New(conf *config.Config) *Service {
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	s.workers = s.NewWorkers()
 	s.InitPush()
+	s.workers = s.NewWorkers()
 	go s.maintainRpcClient()
 	return s
 }

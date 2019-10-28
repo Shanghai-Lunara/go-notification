@@ -5,8 +5,8 @@ import (
 	"errors"
 	fb "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
+	"fmt"
 	"go-notification/config"
-	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
 	"google.golang.org/api/option"
 	"log"
 	"strings"
@@ -82,7 +82,7 @@ func (f *FirebaseAPI) Send(m *Message) (result bool, err error) {
 	res, err := c.Send(ctx, a)
 	cancel()
 	if err != nil {
-		return false, errors.New(fmt.Sprintf("workerId:", m.WorkerId, " Send err:", err))
+		return false, errors.New(fmt.Sprintf("workerId:%d  Send err:%v", m.WorkerId, err))
 	}
 	log.Println("workerId:", m.WorkerId, " pid:", m.Pid, " res:", res)
 	return true, nil

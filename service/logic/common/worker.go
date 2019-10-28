@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"go-notification/api"
 	"go-notification/dao"
 	"log"
 	"sync"
@@ -24,6 +25,7 @@ type Worker struct {
 	count     int
 	status    int
 	listNodes *ListNodes
+	push      api.Push
 	ctx       context.Context
 }
 
@@ -207,6 +209,7 @@ func (s *Service) NewWorkers() *Workers {
 			count:     0,
 			status:    WorkerLoading,
 			listNodes: InitList(),
+			push:      s.push,
 			ctx:       s.ctx,
 		}
 		go s.initWorker(w.workers[i])
