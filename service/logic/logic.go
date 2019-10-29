@@ -1,4 +1,4 @@
-package main
+package logic
 
 import (
 	"flag"
@@ -18,7 +18,7 @@ var (
 	s *common.Service
 )
 
-func main() {
+func Init() {
 	flag.Parse()
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if err := config.Init(); err != nil {
