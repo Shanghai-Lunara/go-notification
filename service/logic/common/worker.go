@@ -231,6 +231,10 @@ func (s *Service) ChangeWorkerStatus(status int) {
 		if v.status == WorkerClosed {
 			continue
 		}
-		v.status = status
+		if v.status == WorkerInterrupt && status == WorkerLoading {
+			v.status = WorkerAlive
+		} else {
+			v.status = status
+		}
 	}
 }
