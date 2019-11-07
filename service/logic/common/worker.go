@@ -150,6 +150,7 @@ func (w *Worker) logicLoop() {
 							//log.Printf("listNodes continue 1111 v:%d time:%d \n", p.Value, int(time.Now().Unix()))
 							time.Sleep(time.Millisecond * 5)
 						} else {
+							log.Printf("listNodes match pid:%d v:%d time:%d \n", p.Pid, p.Value, int(time.Now().Unix()))
 							if err := w.CheckOne(t.RLink.Player.Pid); err != nil {
 								log.Printf("CheckOne pid:%d p:%v err:%v \n", p.Pid, p, err)
 							}

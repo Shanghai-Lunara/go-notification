@@ -68,8 +68,10 @@ func (w *Worker) GetPlayer(pid int) (p *Player, err error) {
 			Value: 0,
 			Delay: DelayDefault,
 		}
-		if err = w.dao.ZAdd(pid); err != nil {
-			return nil, err
+		if w.status == WorkerAlive {
+			if err = w.dao.ZAdd(pid); err != nil {
+				return nil, err
+			}
 		}
 		w.listNodes.AppendOrModify(p)
 		if _, err = w.UpdatePlayerSettings(p); err != nil {
@@ -110,6 +112,7 @@ func (w *Worker) RefreshOne(str string, update bool) (err error) {
 		return err
 	} else {
 		w.UpdatePlayerValue(p, min)
+		log.Printf("p pid:%d v:%v\n", p.Pid, p)
 		return nil
 	}
 }
@@ -137,6 +140,9 @@ func (w *Worker) CheckOne(pid int) (err error) {
 					}
 				}
 			}
+			w.UpdatePlayerValue(p, min)
+		} else {
+			log.Printf("CheckOne no match pid:%d min:%d\n", pid, min)
 			w.UpdatePlayerValue(p, min)
 		}
 		return nil
