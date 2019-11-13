@@ -140,6 +140,15 @@ func (d *Dao) GetPlayerSettings(pid int) (cid string, close int, err error) {
 	}
 	if settings, ok := res["settings"]; ok {
 		tmp := strings.Split(settings, ",")
+		if len(tmp) >= 8 {
+			tmp1, err := strconv.Atoi(tmp[7])
+			if err != nil {
+				return cid, 0, err
+			}
+			if tmp1 == 0 {
+				return cid, 1, nil
+			}
+		}
 		if len(tmp) >= 7 {
 			tmp2, err := strconv.Atoi(tmp[6])
 			if err != nil {
