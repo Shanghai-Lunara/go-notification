@@ -3,7 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
-	"go-notification/api"
+	"github.com/nevercase/go-notification/api"
 	"log"
 	"strconv"
 	"strings"

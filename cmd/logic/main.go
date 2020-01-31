@@ -1,6 +1,6 @@
 package main
 
-import "go-notification/service/logic"
+import "github.com/nevercase/go-notification/service/logic"
 
 func main() {
 	logic.Init()

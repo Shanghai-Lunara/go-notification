@@ -3,8 +3,8 @@ package dispatch
 import (
 	"flag"
 	"fmt"
-	"go-notification/config"
-	"go-notification/service/dispatch/common"
+	"github.com/nevercase/go-notification/config"
+	"github.com/nevercase/go-notification/service/dispatch/common"
 	"log"
 	"os"
 	"os/signal"

@@ -2,7 +2,7 @@ package common
 
 import (
 	"context"
-	"go-notification/config"
+	"github.com/nevercase/go-notification/config"
 	"net"
 	"sync"
 	"sync/atomic"
