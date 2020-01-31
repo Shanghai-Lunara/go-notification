@@ -3,8 +3,8 @@ package logic
 import (
 	"flag"
 	"fmt"
-	"go-notification/config"
-	"go-notification/service/logic/common"
+	"github.com/nevercase/go-notification/config"
+	"github.com/nevercase/go-notification/service/logic/common"
 	"log"
 	"os"
 	"os/signal"

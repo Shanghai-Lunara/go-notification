@@ -2,8 +2,8 @@ package common
 
 import (
 	"context"
-	"go-notification/api"
-	"go-notification/dao"
+	"github.com/nevercase/go-notification/api"
+	"github.com/nevercase/go-notification/dao"
 	"log"
 	"sync"
 	"time"

@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go-notification/api"
-	"go-notification/config"
-	"go-notification/dao"
+	"github.com/nevercase/go-notification/api"
+	"github.com/nevercase/go-notification/config"
+	"github.com/nevercase/go-notification/dao"
 	"log"
 	"sync"
 	"time"
 
-	pb "go-notification/service/proto"
+	pb "github.com/nevercase/go-notification/service/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
