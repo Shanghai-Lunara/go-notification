@@ -6,12 +6,13 @@ import (
 	fb "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
 	"fmt"
-	"go-notification/config"
 	"google.golang.org/api/option"
 	"log"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/nevercase/go-notification/config"
 )
 
 type FirebaseAPI struct {

@@ -2,10 +2,11 @@ package common
 
 import (
 	"context"
-	"github.com/nevercase/go-notification/config"
 	"net"
 	"sync"
 	"sync/atomic"
+
+	"github.com/nevercase/go-notification/config"
 )
 
 type Hub struct {

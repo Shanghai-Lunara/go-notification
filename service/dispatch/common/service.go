@@ -3,12 +3,12 @@ package common
 import (
 	"context"
 	"fmt"
-	"github.com/nevercase/go-notification/config"
-	"github.com/nevercase/go-notification/dao"
 	"log"
 	"net"
 	"time"
 
+	"github.com/nevercase/go-notification/config"
+	"github.com/nevercase/go-notification/dao"
 	pb "github.com/nevercase/go-notification/service/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"

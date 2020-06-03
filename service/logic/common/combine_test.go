@@ -2,7 +2,7 @@ package common
 
 import (
 	"context"
-	"go-notification/dao"
+	"github.com/nevercase/go-notification/dao"
 	"reflect"
 	"sync"
 	"testing"
