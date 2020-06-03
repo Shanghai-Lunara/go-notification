@@ -2,11 +2,12 @@ package common
 
 import (
 	"context"
-	"github.com/nevercase/go-notification/api"
-	"github.com/nevercase/go-notification/dao"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/nevercase/go-notification/api"
+	"github.com/nevercase/go-notification/dao"
 )
 
 const (

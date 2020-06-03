@@ -3,8 +3,6 @@ package dispatch
 import (
 	"flag"
 	"fmt"
-	"github.com/nevercase/go-notification/config"
-	"github.com/nevercase/go-notification/service/dispatch/common"
 	"log"
 	"os"
 	"os/signal"
@@ -12,6 +10,9 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
+	"github.com/nevercase/go-notification/config"
+	"github.com/nevercase/go-notification/service/dispatch/common"
 )
 
 var (

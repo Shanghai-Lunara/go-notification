@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
-	"go-notification/config"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/nevercase/go-notification/config"
 )
 
 type InternalAPI struct {
