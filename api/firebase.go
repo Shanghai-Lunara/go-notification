@@ -19,6 +19,7 @@ type FirebaseAPI struct {
 	mu          sync.RWMutex
 	c           *config.Config
 	hub         map[int]*messaging.Client
+	expired     map[int]time.Time
 	servicePath string
 }
 
@@ -27,9 +28,9 @@ func NewFirebaseAPI(conf *config.Config) Push {
 	var api Push = &FirebaseAPI{
 		c:           conf,
 		hub:         make(map[int]*messaging.Client, 0),
+		expired:     make(map[int]time.Time, 0),
 		servicePath: servicePath,
 	}
-
 	return api
 }
 
@@ -56,7 +57,11 @@ func (f *FirebaseAPI) NewClient() (c *messaging.Client, err error) {
 
 func (f *FirebaseAPI) GetClient(m *Message) (c *messaging.Client, err error) {
 	if t, ok := f.hub[m.WorkerId]; ok {
-		return t, nil
+		log.Printf("wid: %d exist client created time: %v \n", m.WorkerId, f.expired[m.WorkerId].Format("2006-01-02 15:04:05"))
+		if time.Now().Sub(f.expired[m.WorkerId]) <= time.Second*20 {
+			log.Printf("wid: %d exist client expired \n", m.WorkerId)
+			return t, nil
+		}
 	}
 	if c, err = f.NewClient(); err != nil {
 		return nil, err
@@ -64,6 +69,8 @@ func (f *FirebaseAPI) GetClient(m *Message) (c *messaging.Client, err error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.hub[m.WorkerId] = c
+	f.expired[m.WorkerId] = time.Now()
+	log.Printf("wid: %d creat client time: %v \n", m.WorkerId, f.expired[m.WorkerId].Format("2006-01-02 15:04:05"))
 	return c, nil
 }
 
