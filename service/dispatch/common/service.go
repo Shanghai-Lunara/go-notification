@@ -7,9 +7,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/nevercase/go-notification/config"
-	"github.com/nevercase/go-notification/dao"
-	pb "github.com/nevercase/go-notification/service/proto"
+	"github.com/Shanghai-Lunara/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/dao"
+	pb "github.com/Shanghai-Lunara/go-notification/service/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/peer"

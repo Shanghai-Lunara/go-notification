@@ -3,7 +3,7 @@ package dao
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"github.com/nevercase/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/config"
 	"log"
 	"time"
 )

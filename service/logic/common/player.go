@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nevercase/go-notification/api"
+	"github.com/Shanghai-Lunara/go-notification/api"
 )
 
 func (w *Worker) PullPlayerOne(pid int, clear bool) (meet map[int]int, min int, err error) {

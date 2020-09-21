@@ -6,7 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/nevercase/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/config"
 )
 
 type Hub struct {

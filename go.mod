@@ -1,4 +1,4 @@
-module github.com/nevercase/go-notification
+module github.com/Shanghai-Lunara/go-notification
 
 go 1.14
 

@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nevercase/go-notification/config"
-	"github.com/nevercase/go-notification/service/dispatch/common"
+	"github.com/Shanghai-Lunara/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/service/dispatch/common"
 )
 
 var (
