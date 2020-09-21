@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/nevercase/go-notification/config"
-	"github.com/nevercase/go-notification/dao"
+	"github.com/Shanghai-Lunara/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/dao"
 	"log"
 	"time"
 )

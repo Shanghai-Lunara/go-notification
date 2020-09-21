@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nevercase/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/config"
 )
 
 type FirebaseAPI struct {

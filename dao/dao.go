@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/nevercase/go-notification/config"
+	"github.com/Shanghai-Lunara/go-notification/config"
 	"sync"
 )
 

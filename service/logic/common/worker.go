@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nevercase/go-notification/api"
-	"github.com/nevercase/go-notification/dao"
+	"github.com/Shanghai-Lunara/go-notification/api"
+	"github.com/Shanghai-Lunara/go-notification/dao"
 )
 
 const (
